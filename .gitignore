@@ -85,6 +85,8 @@ models/*.onnx
 data/raw/*
 data/processed/*
 data/samples/*
+ml/anpr/dataset/
+ml/anpr/dataset_original_polygon_labels/
 
 # Keep folder structure
 !data/raw/.gitkeep

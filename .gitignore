@@ -41,6 +41,7 @@ __pycache__/
 venv/
 env/
 ENV/
+ml_venv/
 
 .pytest_cache/
 .mypy_cache/

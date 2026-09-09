@@ -1,6 +1,6 @@
 # TransitEye Person 3 — India-Specific Infrastructure Dataset Audit & Strategy
 
-> **STATUS**: `LICENSE PERMISSION — UNKNOWN — REQUIRES PUBLISHER CONFIRMATION`  
+> **STATUS**: `NO EXISTING INDIAN DEFECT DATASET — DRIVEINDIA ANNOTATION FALLBACK`  
 > **Document Location**: `ml/missing_infrastructure/experiments/india_dataset_audit.md`  
 
 ---
@@ -9,7 +9,7 @@
 
 This report documents the dataset feasibility audit for acquiring and manually annotating a high-quality Indian infrastructure defect subset from **DriveIndia** (TiHAN - IIT Hyderabad) for TransitEye's **Roadside Infrastructure Defect Detection** (`ml/missing_infrastructure/`) module.
 
-DriveIndia contains **66,986 real Indian road images** with 2D bounding boxes across 24 object categories. However, DriveIndia contains **0 explicit infrastructure defect annotations** (`damaged_sign`, `broken_pole`).
+DriveIndia contains **66,986 real Indian road images** with 2D bounding boxes across 24 object categories. However, DriveIndia contains **0 explicit infrastructure defect annotations** (`damaged_sign`, `broken_pole`). Extensive searches confirmed that **no public, legally accessible bounding-box dataset containing explicit Indian roadside infrastructure defects currently exists**.
 
 ---
 
@@ -30,21 +30,21 @@ DriveIndia contains **66,986 real Indian road images** with 2D bounding boxes ac
 ## 3. DriveIndia Defect Prevalence & Annotation Feasibility Audit (Phases 3, 4, 5)
 
 - **Total Indian Road Images**: **66,986 images** (`PUBLICLY STATED`).
-- **Infrastructure-Positive Indian Images**: **~6,800+ images** containing signs, lights, barriers, and route boards (`ESTIMATED` from validation set baseline: 684 sign + 297 light + 298 board + 145 barrier frames).
-- **Defect-Positive Indian Images (Unannotated)**: **~250–600 images** containing visually defensible defect states (`damaged_sign`, `tilted_sign`, `faded_sign`, `damaged_barrier`) (`ESTIMATED`).
-- **Annotatable Defect Corpus**: **~300–500 high-quality Indian defect images** (`ESTIMATED`).
-- **Candidate Indian Defect Classes**:
+- **Source DriveIndia Defect Annotations**: **0 images** (`VERIFIED`).
+- **DriveIndia Defect Prevalence**: `DRIVEINDIA DEFECT PREVALENCE = UNKNOWN` (`NOT MEASURED LOCALLY — REQUIRES LOCAL IMAGE SAMPLE AUDIT`).
+- **Speculative Estimate Policy**: Speculative unverified estimates (e.g., 2–5% defect rate) are rejected as evidence for dataset readiness.
+- **Candidate Indian Defect Classes (Pending Audit)**:
   1. `damaged_sign` (damaged, bent, or broken traffic/street signs)
   2. `tilted_sign` (severely leaning or misaligned sign posts)
   3. `faded_sign` (weathered or illegible signage)
-  4. `damaged_barrier` (toppled or broken traffic barriers/cones)
+  4. `damaged_barrier` (toppled or broken temporary traffic barriers)
 
 ---
 
 ## 4. Recommended Multi-Dataset Architecture (Phase 8)
 
 1. **Dataset A (Indian Domain Foundation)**: **DriveIndia** (66,986 images). Teaches the model Indian road background scenes, illumination, weather, traffic density, and standard Indian roadside asset detection (`traffic_sign`, `traffic_light`, `route_board`, `barrier`).
-2. **Dataset B (Indian Defect Fine-Tuning)**: Manually annotated DriveIndia defect subset (~300–500 Indian defect images: `damaged_sign`, `tilted_sign`, `damaged_barrier`).
+2. **Dataset B (Indian Defect Fallback Annotation Corpus)**: Manually annotated DriveIndia defect subset, subject to a local image sample prevalence audit and publisher EULA approval.
 3. **Dataset C (Supplementary Condition Pretraining)**: **WHU-Infra3D** (5,449 images, 175,021 boxes). Teaches the model fine-grained infrastructure defect/damage attributes (`damaged`, `broken`, `non_working`, `tilted`).
 4. **Dataset D (Held-Out Indian Test Set)**: Curated held-out test set of **real Indian road imagery** containing annotated defect instances. Final evaluation metrics must be calculated strictly on Indian road data.
 
@@ -56,4 +56,3 @@ DriveIndia contains **66,986 real Indian road images** with 2D bounding boxes ac
   - **Stage 1 (Asset Detector)**: YOLOv8n trained on DriveIndia + WHU-Infra3D to detect Indian roadside infrastructure assets (`traffic_sign`, `street_light`, `signal_light`, `route_board`).
   - **Stage 2 (Condition Classifier)**: Secondary classifier evaluating cropped bounding boxes for condition states (`intact`, `damaged`, `broken`, `tilted`, `faulty`).
 - **Policy**: Model training remains strictly paused (`NOT RUN`) until dataset strategy and EULA approval.
-

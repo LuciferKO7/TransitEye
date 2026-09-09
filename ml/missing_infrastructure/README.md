@@ -1,6 +1,6 @@
 # TransitEye Person 3 — Missing Infrastructure Detection Module
 
-> **Module Status**: `INITIALIZED — DATASET PENDING`  
+> **Module Status**: `DATASET PREPARED — TRAINING PENDING`  
 > **Model Family**: YOLOv8n  
 > **Target Domain**: Edge-AI Missing & Deficient Urban Infrastructure Detection  
 
@@ -8,7 +8,7 @@
 
 ## 1. Module Overview
 
-The Missing Infrastructure module transforms public bus cameras into mobile sensors for detecting missing, damaged, or deficient urban infrastructure (such as missing manhole covers, damaged guardrails, missing street signage, or open utility pits).
+The Missing Infrastructure module transforms public bus cameras into mobile sensors for detecting missing, damaged, or deficient urban infrastructure (such as missing/damaged street signage or broken/damaged utility poles).
 
 Observations are processed locally at the edge using YOLOv8n and normalized via `MissingInfrastructureAdapter` into canonical `CanonicalDetection` payloads for the TransitEye Edge Orchestrator and Central GIS Dashboard.
 
@@ -33,10 +33,14 @@ Edge Orchestrator / Backend Pipeline
 
 ## 3. Dataset & Class Status
 
-- **Dataset Source**: `DATASET STATUS: UNKNOWN / NOT PRESENT — NOT VERIFIED`
-- **Verified Target Classes**: `UNKNOWN — PENDING DATASET VERIFICATION`
+- **Dataset Source**: Urban Issues Dataset (Kaggle: `akinduhiman`)
+- **Canonical Processed Dataset**: `data/processed/p3_missing_infrastructure/`
+- **Verified Target Classes**:
+  - `0`: `broken_signage` (2,310 instances across 2,295 images)
+  - `1`: `broken_pole` (9,316 instances across 7,586 images)
+- **Dataset Preparation Script**: `scripts/prepare_p3_missing_infrastructure_dataset.py`
 - **Class Definitions File**: `ml/missing_infrastructure/classes.txt`
-- **Weights Status**: `WEIGHTS STATUS: NOT TRAINED`
+- **Weights Status**: `WEIGHTS STATUS: NOT TRAINED` (Training has NOT yet occurred)
 
 ---
 

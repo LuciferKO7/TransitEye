@@ -1,3 +1,2 @@
-# TransitEye Person 3 — Missing Infrastructure Target Classes
-# DATASET STATUS: UNKNOWN / NOT PRESENT — NOT VERIFIED
-# Class definitions will be populated once custom-labelled dataset is verified.
+broken_signage
+broken_pole

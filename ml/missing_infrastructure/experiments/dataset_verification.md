@@ -1,67 +1,51 @@
 # TransitEye Person 3 — Missing Infrastructure Dataset Acquisition & Verification Report
 
-> **STATUS**: `ACQUISITION BLOCKED — CREDENTIALS REQUIRED`  
+> **STATUS**: `DATASET ACQUISITION BLOCKED`  
 > **Document Location**: `ml/missing_infrastructure/experiments/dataset_verification.md`  
 
 ---
 
 ## 1. Executive Summary
 
-This report documents the local dataset discovery, source verification, and acquisition status for TransitEye's **Missing & Deficient Urban Infrastructure Detection** module.
+This report documents the dataset acquisition and verification attempts for Candidate 1 (Damaged Road Signs), Candidate 2 (Streetlight Defects), and Candidate 3 (Other Infrastructure Defects) for TransitEye's **Roadside Infrastructure Defect Detection** (`ml/missing_infrastructure/`) module.
 
-Web dataset research identified the **Smartathon Urban Defects & Visual Pollution Object Detection Dataset** as the primary candidate. Programmatic local acquisition requires Kaggle API or Roboflow Universe authentication credentials (`~/.kaggle/kaggle.json` or `ROBOFLOW_API_KEY`), which are not currently configured in the local workspace.
-
----
-
-## 2. Verified Dataset Source Metadata
-
-- **Primary Dataset Candidate**: **Smartathon Urban Defects / Visual Pollution Object Detection Dataset**
-- **Publisher / Host**: Saudi Data & AI Authority (SDAIA) / Kaggle & Roboflow Community
-- **Source Identifier**: `kaggle datasets download -d smartathon-object-detection`
-- **Roboflow Workspace/Project**: `smartathon-c7dt2/visual-pollution-bwsna`
-- **Publisher License**: CC BY 4.0 / CC BY-NC-SA 3.0 IGO
-- **Source Verification**: `YES` (Metadata verified via official Kaggle/Roboflow repositories)
-- **Download Method**: Kaggle API CLI / Roboflow Python SDK
+Publicly accessible object detection datasets with bounding boxes were evaluated. Candidate 1 (`nick-g857q/damaged-road-sign-detection`) and Candidate 2 require user authentication credentials or paywall payment, while candidate public datasets on open hubs either lack bounding box annotations or label intact infrastructure rather than defect states.
 
 ---
 
-## 3. Local Acquisition Status & Blockers
+## 2. Candidate Acquisition Results
 
-- **Disk Target Directory**: `data/raw/smartathon/`
-- **Local Download Status**: `DATASET ACQUISITION BLOCKED`
-- **Reason**: Downloading raw dataset archives from Kaggle or Roboflow Universe requires user authentication credentials (`~/.kaggle/kaggle.json` or `ROBOFLOW_API_KEY`).
-- **Disk Usage (Measured)**: `0 MB` (Raw archive download pending credentials)
-- **Local File Inspection**: `NOT TESTED — DATASET PENDING LOCAL DOWNLOAD`
+### Candidate 1 — Damaged Road Signs (`nick-g857q/damaged-road-sign-detection`)
+- **Source**: Roboflow Universe (`https://universe.roboflow.com/nick-g857q/damaged-road-sign-detection`)
+- **Publicly Stated Stats**: 1,677 images, Object Detection, classes: `healthy`, `damaged`, License: CC BY 4.0, split: 100% train / 0% val / 0% test.
+- **Unauthenticated Acquisition Attempt**: `BLOCKED` (Roboflow Universe requires account login/signup credentials or `ROBOFLOW_API_KEY` for export download).
 
----
+### Candidate 2 — Streetlight Defects
+- **Source Search**: Smartathon dataset, Zenodo, Hugging Face, GitHub (`lonlonago`, `RBoabeng`).
+- **Data Quality Audit**: Audit of Smartathon class distribution revealed that `BAD_STREETLIGHT` has only **1 bounding-box annotation** in total across the entire dataset (`VERIFIED`).
+- **Alternative Sources**: Require $89 Stripe paywall or user API keys.
+- **Acquisition Status**: `BLOCKED / INSUFFICIENT DATA`
 
-## 4. Target Classes & Filtering Specification
-
-Upon acquisition, `scripts/prepare_missing_infrastructure_dataset.py` will extract and remap the following verified target classes:
-
-| Source Class Name | Target ID | Remapped Target Class | Description / Hazard Meaning | Expected Status |
-| :--- | :---: | :--- | :--- | :---: |
-| `BROKEN_SIGNAGE` | 0 | `broken_signage` | Damaged, bent, or hanging traffic/street signage | `ACQUISITION PENDING` |
-| `BAD_STREETLIGHT` | 1 | `bad_streetlight` | Damaged, unlit, leaning, or broken street lighting poles | `ACQUISITION PENDING` |
-| `FADED_SIGNAGE` | 2 | `faded_signage` | Weathered or illegible street signs requiring replacement | `ACQUISITION PENDING` |
-
-*(Note: Original dataset classes such as `POTHOLES` or `CLUTTER_SIDEWALK` will be filtered out during preprocessing to preserve strict module isolation with P3 Road Defects).*
-
----
-
-## 5. Dataset Preparation & Pipeline Code
-
-The complete dataset extraction, remapping, zero-leakage 80/20 train/val splitting, and `data.yaml` generation pipeline has been implemented and checked into the repository:
-- **Preparation Script**: `scripts/prepare_missing_infrastructure_dataset.py`
-- **Target Output Directory**: `data/processed/missing_infrastructure/`
-- **Dataset Config File**: `data/processed/missing_infrastructure/data.yaml`
+### Candidate 3 — Other Infrastructure Defects (`tahaUgan/pothole-sewage-manhole-yolo`)
+- **Source**: Hugging Face (`tahaUgan/pothole-sewage-manhole-yolo`)
+- **License**: CC BY 4.0 (`PUBLICLY STATED`)
+- **Acquisition**: Direct HTTP download accessible (`VERIFIED`)
+- **Format**: YOLOv8 PyTorch (`VERIFIED`)
+- **Class Breakdown**: `0: Pothole`, `1: Sewage-Manhole` (`VERIFIED`)
+- **Data Audit Results**: Sampling 50 label files yielded 120 `Pothole` boxes and 17 `Sewage-Manhole` boxes (`MEASURED`). `Pothole` directly duplicates P3 Road Defects, while `Sewage-Manhole` labels standard intact manhole covers rather than structural defect states (`VERIFIED`).
+- **Acquisition Status**: `REJECTED — SEMANTIC & MODULE MISMATCH`
 
 ---
 
-## 6. Model Training & Verification Status
+## 3. Class Selection & Balance Rules
 
-- **YOLOv8n Model Initialization**: `NOT RUN`
-- **Model Training**: `NOT RUN`
-- **Empirical Metrics**: `NOT TESTED`
+- **Smartathon Class Mapping**: Retired due to single-instance class imbalance (`BAD_STREETLIGHT` = 1 annotation).
+- **Module Boundaries**: Potholes and road surface cracks are strictly reserved for P3 Road Defects.
+- **Semantic Distinction**: Detection models identify visible defect states (`damaged_sign`, `broken_pole`), not asset absence (`missing_sign`), which relies on GIS road segment asset cross-referencing.
 
-> **POLICY**: Model training and feasibility smoke testing are strictly paused until the dataset zip archive is downloaded to `data/raw/smartathon/` and verified locally.
+---
+
+## 4. Current Provenance & Verification Status
+
+- **Local Disk Status**: `DATASET STATUS: UNKNOWN / NOT PRESENT — DEPLOYABLE DEFECT DATASET PENDING`
+- **Training Status**: `NOT RUN` (Training is strictly paused until a verified, defensible bounding-box defect dataset is acquired).

@@ -1,72 +1,60 @@
 # TransitEye Person 3 — Missing Infrastructure Dataset Selection Specification
 
-> **STATUS**: `BEST CANDIDATE — ACQUISITION BLOCKED`  
+> **STATUS**: `PIVOT EVALUATION COMPLETE — ACQUISITION BLOCKED FOR QUALITY DEFECT DATA`  
 > **Document Location**: `ml/missing_infrastructure/experiments/dataset_selection.md`  
 
 ---
 
 ## 1. Objective
-Identify, evaluate, and select the optimal, legally compliant, and technically suitable object detection dataset for TransitEye's **Missing & Deficient Urban Infrastructure Detection** module using the **YOLOv8n** architecture.
+Identify, evaluate, and select a legally compliant, publicly accessible, and technically suitable object detection dataset for TransitEye's **Roadside Infrastructure Defect Detection** (`ml/missing_infrastructure/`) module using the **YOLOv8n** architecture.
 
 ---
 
-## 2. Public Dataset Discovery Search (Phase 1)
+## 2. Pivot Dataset Search Strategy
 
-A systematic search across global dataset repositories (GitHub, Hugging Face, Roboflow Universe, Kaggle, Zenodo) was conducted across seven target infrastructure domains:
-1. `broken signage`
-2. `damaged roadside signs`
-3. `bad / damaged streetlights`
-4. `faded / damaged road signs`
-5. `roadside infrastructure defects`
-6. `urban infrastructure damage`
-7. `municipal infrastructure defects`
+Following the initial acquisition blocker on Smartathon, three primary candidate categories were investigated for direct, unauthenticated download access:
 
----
+1. **Candidate 1 — Damaged Road Signs** (`nick-g857q/damaged-road-sign-detection`)
+   - Webpage: Roboflow Universe (1,677 images, CC BY 4.0, YOLOv8 format).
+   - Unauthenticated Access: `BLOCKED` (Roboflow Universe requires account authentication/API key for zip export).
 
-## 3. Comprehensive Dataset Candidate Evaluation Table (Phase 2)
+2. **Candidate 2 — Streetlight Defect Datasets**
+   - Search across public hubs (Hugging Face, Zenodo, GitHub) for damaged/faulty streetlights.
+   - Smartathon Audit: `BAD_STREETLIGHT` contains only 1 bounding box annotation in total across the entire dataset (`VERIFIED`).
+   - Alternative repos (`lonlonago`, `RBoabeng`): Require $89 Stripe paywall or `ROBOFLOW_API_KEY`.
+   - Access: `BLOCKED / INSUFFICIENT DATA`.
 
-| Candidate Dataset | Source / Publisher | URL | License | Download Method | Auth Required | Approx Size | Image Count | Annotation Format | Target Classes | Bounding Boxes | Relevance | Local Accessibility |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Smartathon Visual Pollution** | SDAIA / Kaggle / Roboflow | `https://universe.roboflow.com/smartathon-c7dt2/visual-pollution-bwsna` | CC BY 4.0 / CC BY-NC-SA 3.0 IGO (`PUBLICLY STATED`) | API Zip Export | Yes (`PUBLICLY STATED`) | ~1.5 GB (`PUBLICLY STATED`) | 2,000+ (`PUBLICLY STATED`) | YOLO PyTorch (`VERIFIED`) | `BROKEN_SIGNAGE`, `BAD_STREETLIGHT`, `FADED_SIGNAGE` (`VERIFIED`) | Yes (`VERIFIED`) | High (`VERIFIED`) | `BLOCKED` (Requires API Key / Auth) |
-| **Road Issues Detection** | Programmer-RD-AI / Hugging Face | `https://huggingface.co/datasets/Programmer-RD-AI/road-issues-detection-dataset` | Open Source / CC BY-NC 4.0 (`PUBLICLY STATED`) | Direct HTTP | No (`VERIFIED`) | ~1.2 GB (`VERIFIED`) | 9,660 (`VERIFIED`) | Folder Image Classification (`VERIFIED`) | `Broken Road Sign Issues`, `Damaged Road issues`, `Pothole Issues` (`VERIFIED`) | **No** (`VERIFIED`) | Medium (`VERIFIED`) | Accessible (`VERIFIED`), but Unusable for YOLO |
-| **Urban Foundation Equipment Defect** | lonlonago / GitHub | `https://github.com/lonlonago/Urban-Foundation-Equipment-Defect-Detection-Dataset-8887-imagesVOC-YOLO-format` | Commercial ($89 Stripe Paywall) (`PUBLICLY STATED`) | Email after Payment | Yes ($89 Paywall) (`PUBLICLY STATED`) | ~2.5 GB (`UNKNOWN`) | 8,887 (`PUBLICLY STATED`) | VOC XML + YOLO TXT (`PUBLICLY STATED`) | `Broken-Cracked-Manholes`, `Broken-Poles`, `Damaged-roads` (`PUBLICLY STATED`) | Yes (`PUBLICLY STATED`) | High (`PUBLICLY STATED`) | `BLOCKED` ($89 Paywall) |
-| **German Traffic Sign Detection** | keremberke / Hugging Face | `https://huggingface.co/datasets/keremberke/german-traffic-sign-detection` | CC BY 4.0 (`PUBLICLY STATED`) | Direct HTTP | No (`VERIFIED`) | ~150 MB (`VERIFIED`) | 900+ (`VERIFIED`) | COCO JSON (`VERIFIED`) | Standard Traffic Signs (Speed limit, Stop, Warning) (`VERIFIED`) | Yes (`VERIFIED`) | Low (`VERIFIED` - Normal signs only, no defects) | Accessible (`VERIFIED`), but Irrelevant |
-| **Damaged Road Sign Detection** | Nick / Roboflow Universe | `https://universe.roboflow.com/nick-g857q/damaged-road-sign-detection` | CC BY 4.0 (`PUBLICLY STATED`) | Roboflow API Zip | Yes (`PUBLICLY STATED`) | ~300 MB (`UNKNOWN`) | 500+ (`PUBLICLY STATED`) | YOLOv8 (`PUBLICLY STATED`) | `damaged_sign`, `healthy_sign` (`PUBLICLY STATED`) | Yes (`PUBLICLY STATED`) | High (`PUBLICLY STATED`) | `BLOCKED` (Requires Roboflow API Key) |
-| **Environmental Hazards** | lumen-visual-assistant / Roboflow | `https://universe.roboflow.com/lumen-visual-assistant/environmental_hazards` | CC BY 4.0 (`PUBLICLY STATED`) | Roboflow API Zip | Yes (`PUBLICLY STATED`) | ~600 MB (`UNKNOWN`) | 1,500+ (`PUBLICLY STATED`) | YOLOv8 (`PUBLICLY STATED`) | `open_manhole`, `fallen_signage`, `fallen_utility_pole` (`PUBLICLY STATED`) | Yes (`PUBLICLY STATED`) | High (`PUBLICLY STATED`) | `BLOCKED` (Requires Roboflow API Key) |
+3. **Candidate 3 — Other Infrastructure Defect Datasets** (`tahaUgan/pothole-sewage-manhole-yolo` on Hugging Face)
+   - Format: YOLO PyTorch object detection (`train`, `valid`, `test`, `data.yaml`).
+   - License: CC BY 4.0 (`PUBLICLY STATED`).
+   - Unauthenticated Access: `VERIFIED` (Direct HTTP download accessible).
+   - Classes: `0: Pothole`, `1: Sewage-Manhole`.
+   - Semantic Assessment: `Pothole` directly duplicates P3 Road Defects (`potholes`, `cracks`). `Sewage-Manhole` labels standard intact manhole covers rather than structural defect states.
 
 ---
 
-## 4. Preferred Dataset Selection Rationale (Phase 3)
+## 3. Comprehensive Dataset Candidate Evaluation Matrix
 
-The candidate datasets were evaluated against the required selection criteria:
-1. **Directly Downloadable Without Credentials**: Only HF image classification datasets and normal sign datasets were available without authentication; all bounding-box infrastructure defect datasets require API keys or paywall payment.
-2. **Actual Bounding-Box Annotations**: The Hugging Face `road-issues-detection-dataset` contains image-level folder classification only (no bounding boxes), making it structurally incompatible with YOLOv8n object detection.
-3. **Semantic Match to Defect Categories**: Smartathon remains the single strongest semantic match for vehicle-mounted urban infrastructure defect detection (`broken_signage`, `bad_streetlight`, `faded_signage`).
-
----
-
-## 5. Final Selection Status
-
-Smartathon Urban Defects remains the highest-quality candidate semantically and structurally. However, because programmatic zip download without API credentials returns HTTP 403 / 404 access restrictions across Kaggle and Roboflow Universe APIs, the dataset selection status is explicitly marked:
-
-`BEST CANDIDATE — ACQUISITION BLOCKED`
+| Candidate Dataset | Source / Publisher | Download Method | Auth Required | Format | Bounding Boxes | Infrastructure Defect Match | Status / Verdict |
+| :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| **Damaged Road Sign** (`nick-g857q`) | Roboflow Universe | API Zip Export | Yes (`ROBOFLOW_API_KEY`) | YOLOv8 | Yes | High (`damaged_sign`, `healthy`) | `BLOCKED` (Auth Required) |
+| **Streetlight Defects** (Smartathon / Repos) | SDAIA / GitHub | Web / Stripe / API | Yes | Various | Yes | High (in concept), but 1 box in Smartathon | `BLOCKED / INSUFFICIENT DATA` |
+| **Pothole & Sewage Manhole** (`tahaUgan`) | Hugging Face | Direct HTTP | No | YOLOv8 | Yes | Low (Intact manholes & pothole duplicate) | `REJECTED — SEMANTIC MISMATCH` |
+| **Road Issues Detection** (`Programmer-RD-AI`) | Hugging Face | Direct HTTP | No | Classification Folders | **No** | Medium | `REJECTED — NO BOUNDING BOXES` |
 
 ---
 
-## 6. Target Class Mapping Specification (Pending Acquisition)
+## 4. Class Balance & Selection Rules
 
-Upon dataset archive availability in `data/raw/smartathon/`, the target classes will be extracted as follows:
-
-| Original Class Name | Target Class ID | Remapped Class Name | Status |
-| :--- | :---: | :--- | :---: |
-| `BROKEN_SIGNAGE` | 0 | `broken_signage` | `ACQUISITION BLOCKED` |
-| `BAD_STREETLIGHT` | 1 | `bad_streetlight` | `ACQUISITION BLOCKED` |
-| `FADED_SIGNAGE` | 2 | `faded_signage` | `ACQUISITION BLOCKED` |
+1. **Smartathon 3-Class Mapping Retired**: The previous mapping (`broken_signage`, `bad_streetlight`, `faded_signage`) is retired because `BAD_STREETLIGHT` has only 1 annotation across the Smartathon dataset.
+2. **P3 Module Isolation**: Pothole and pavement crack classes are assigned exclusively to P3 Road Defects and must not be duplicated in Missing Infrastructure.
+3. **Defect State Verification**: Only datasets providing explicit bounding boxes for damaged/defective infrastructure states (`damaged_sign`, `broken_pole`) are acceptable.
 
 ---
 
-## 7. Current Provenance & Verification Status
+## 5. Current Module Status
 
-- **Local Disk Status**: `DATASET STATUS: UNKNOWN / NOT PRESENT — LOCAL VERIFICATION PENDING`
-- **Training Status**: `NOT RUN` (Training is strictly paused until local acquisition and verification).
+- **Acquisition Status**: `DATASET ACQUISITION BLOCKED`
+- **Training Status**: `NOT RUN` (Model training is strictly paused until a verified, defensible bounding-box defect dataset is acquired).
+
 

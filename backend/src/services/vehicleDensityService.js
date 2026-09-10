@@ -84,8 +84,8 @@ class VehicleDensityService {
     return await this.repository.create(normalized);
   }
 
-  async getAllVehicleDensity() {
-    return await this.repository.findAll();
+  async getAllVehicleDensity(options = {}) {
+    return await this.repository.findAll(options);
   }
 
   async getVehicleDensityById(id) {

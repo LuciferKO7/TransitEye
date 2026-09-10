@@ -22,8 +22,25 @@ class InMemoryIncidentRepository {
     return { ...incident };
   }
 
-  async findAll() {
-    return this.incidents.map((inc) => ({ ...inc }));
+  async findAll(options = {}) {
+    let list = this.incidents.map((inc) => ({ ...inc }));
+
+    if (options.bus_id) list = list.filter((inc) => inc.bus_id === options.bus_id);
+    if (options.trigger_reason) list = list.filter((inc) => inc.trigger_reason === options.trigger_reason);
+    if (options.since) list = list.filter((inc) => new Date(inc.timestamp) >= new Date(options.since));
+    if (options.until) list = list.filter((inc) => new Date(inc.timestamp) <= new Date(options.until));
+
+    list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    const total = list.length;
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    const result = list.slice(offset, offset + limit);
+    result.total = total;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {
@@ -66,17 +83,34 @@ class SupabaseIncidentRepository {
     return data;
   }
 
-  async findAll() {
-    const { data, error } = await this.client
+  async findAll(options = {}) {
+    let query = this.client
       .from(this.table)
-      .select("*")
-      .order("timestamp", { ascending: false });
+      .select("*", { count: "exact" });
+
+    if (options.bus_id) query = query.eq("bus_id", options.bus_id);
+    if (options.trigger_reason) query = query.eq("trigger_reason", options.trigger_reason);
+    if (options.since) query = query.gte("timestamp", options.since);
+    if (options.until) query = query.lte("timestamp", options.until);
+
+    query = query.order("timestamp", { ascending: false });
+
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, count, error } = await query;
 
     if (error) {
       throw new Error(`[SupabaseIncidentRepository.findAll] Failed: ${error.message} (code: ${error.code})`);
     }
 
-    return data || [];
+    const result = data || [];
+    result.total = count !== null && count !== undefined ? count : result.length;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {

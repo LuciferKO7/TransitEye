@@ -172,8 +172,8 @@ class DetectionService {
     return await this.repository.create(normalized);
   }
 
-  async getAllDetections() {
-    return await this.repository.findAll();
+  async getAllDetections(options = {}) {
+    return await this.repository.findAll(options);
   }
 
   async getDetectionById(id) {

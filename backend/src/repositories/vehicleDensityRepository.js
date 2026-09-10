@@ -22,8 +22,24 @@ class InMemoryVehicleDensityRepository {
     return { ...record };
   }
 
-  async findAll() {
-    return this.records.map((r) => ({ ...r }));
+  async findAll(options = {}) {
+    let list = this.records.map((r) => ({ ...r }));
+
+    if (options.segment_id) list = list.filter((r) => r.segment_id === options.segment_id);
+    if (options.since) list = list.filter((r) => new Date(r.recorded_at) >= new Date(options.since));
+    if (options.until) list = list.filter((r) => new Date(r.recorded_at) <= new Date(options.until));
+
+    list.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+
+    const total = list.length;
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    const result = list.slice(offset, offset + limit);
+    result.total = total;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {
@@ -66,17 +82,33 @@ class SupabaseVehicleDensityRepository {
     return data;
   }
 
-  async findAll() {
-    const { data, error } = await this.client
+  async findAll(options = {}) {
+    let query = this.client
       .from(this.table)
-      .select("*")
-      .order("recorded_at", { ascending: false });
+      .select("*", { count: "exact" });
+
+    if (options.segment_id) query = query.eq("segment_id", options.segment_id);
+    if (options.since) query = query.gte("recorded_at", options.since);
+    if (options.until) query = query.lte("recorded_at", options.until);
+
+    query = query.order("recorded_at", { ascending: false });
+
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, count, error } = await query;
 
     if (error) {
       throw new Error(`[SupabaseVehicleDensityRepository.findAll] Failed: ${error.message} (code: ${error.code})`);
     }
 
-    return data || [];
+    const result = data || [];
+    result.total = count !== null && count !== undefined ? count : result.length;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {

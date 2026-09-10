@@ -36,8 +36,28 @@ class InMemoryDetectionRepository {
     return { ...detection };
   }
 
-  async findAll() {
-    return this.detections.map((d) => ({ ...d }));
+  async findAll(options = {}) {
+    let list = this.detections.map((d) => ({ ...d }));
+
+    if (options.type) list = list.filter((d) => d.type === options.type);
+    if (options.subtype) list = list.filter((d) => d.subtype === options.subtype);
+    if (options.status) list = list.filter((d) => d.status === options.status);
+    if (options.severity) list = list.filter((d) => d.severity === options.severity);
+    if (options.segment_id) list = list.filter((d) => d.segment_id === options.segment_id);
+    if (options.since) list = list.filter((d) => new Date(d.timestamp) >= new Date(options.since));
+    if (options.until) list = list.filter((d) => new Date(d.timestamp) <= new Date(options.until));
+
+    list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    const total = list.length;
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    const result = list.slice(offset, offset + limit);
+    result.total = total;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {
@@ -129,17 +149,37 @@ class SupabaseDetectionRepository {
     return data;
   }
 
-  async findAll() {
-    const { data, error } = await this.client
+  async findAll(options = {}) {
+    let query = this.client
       .from(this.table)
-      .select("*")
-      .order("timestamp", { ascending: false });
+      .select("*", { count: "exact" });
+
+    if (options.type) query = query.eq("type", options.type);
+    if (options.subtype) query = query.eq("subtype", options.subtype);
+    if (options.status) query = query.eq("status", options.status);
+    if (options.severity) query = query.eq("severity", options.severity);
+    if (options.segment_id) query = query.eq("segment_id", options.segment_id);
+    if (options.since) query = query.gte("timestamp", options.since);
+    if (options.until) query = query.lte("timestamp", options.until);
+
+    query = query.order("timestamp", { ascending: false });
+
+    const limit = Number.isInteger(options.limit) ? options.limit : 50;
+    const offset = Number.isInteger(options.offset) ? options.offset : 0;
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, count, error } = await query;
 
     if (error) {
       throw new Error(`[SupabaseDetectionRepository.findAll] Failed: ${error.message} (code: ${error.code})`);
     }
 
-    return data || [];
+    const result = data || [];
+    result.total = count !== null && count !== undefined ? count : result.length;
+    result.limit = limit;
+    result.offset = offset;
+    return result;
   }
 
   async findById(id) {

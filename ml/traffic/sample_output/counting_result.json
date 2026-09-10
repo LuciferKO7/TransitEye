@@ -8,10 +8,10 @@
   },
   "unique_tracked_vehicles": 72,
   "unique_vehicle_class_breakdown": {
-    "bus": 2,
+    "bus": 1,
     "car": 63,
     "motorcycle": 0,
-    "truck": 7
+    "truck": 8
   },
   "consistency_checks": {
     "unique_vehicle_count_matches_track_ids": "PASS",
@@ -24,78 +24,54 @@
     "class_switching_details": [
       {
         "track_id": 11,
-        "observed_classes": [
+        "observed_classes_sequence_unique": [
           "bus",
           "truck"
         ],
-        "class_counts": {
-          "bus": 48,
-          "truck": 1
-        },
-        "assigned_primary_class": "bus"
+        "last_observed_class": "truck"
       },
       {
         "track_id": 12,
-        "observed_classes": [
-          "bus",
-          "truck"
+        "observed_classes_sequence_unique": [
+          "truck",
+          "bus"
         ],
-        "class_counts": {
-          "truck": 111,
-          "bus": 10
-        },
-        "assigned_primary_class": "truck"
+        "last_observed_class": "truck"
       },
       {
         "track_id": 22,
-        "observed_classes": [
+        "observed_classes_sequence_unique": [
           "truck",
           "car"
         ],
-        "class_counts": {
-          "truck": 4,
-          "car": 7
-        },
-        "assigned_primary_class": "car"
+        "last_observed_class": "car"
       },
       {
         "track_id": 42,
-        "observed_classes": [
-          "truck",
-          "car"
+        "observed_classes_sequence_unique": [
+          "car",
+          "truck"
         ],
-        "class_counts": {
-          "car": 19,
-          "truck": 2
-        },
-        "assigned_primary_class": "car"
+        "last_observed_class": "car"
       },
       {
         "track_id": 125,
-        "observed_classes": [
+        "observed_classes_sequence_unique": [
           "bus",
           "truck"
         ],
-        "class_counts": {
-          "bus": 94,
-          "truck": 10
-        },
-        "assigned_primary_class": "bus"
+        "last_observed_class": "bus"
       },
       {
         "track_id": 318,
-        "observed_classes": [
-          "bus",
-          "truck"
+        "observed_classes_sequence_unique": [
+          "truck",
+          "bus"
         ],
-        "class_counts": {
-          "truck": 25,
-          "bus": 9
-        },
-        "assigned_primary_class": "truck"
+        "last_observed_class": "truck"
       }
     ],
-    "rule": "Majority vote across observed frames for each unique track_id"
+    "rule": "Last class label produced by YOLOv8n+ByteTrack per track_id \u2014 no smoothing or correction applied"
   },
   "raw_frame_detections": {
     "total_raw_detections": 3125,
@@ -107,8 +83,8 @@
     }
   },
   "performance": {
-    "elapsed_time_sec": 4.95,
-    "observed_fps": 30.27,
+    "elapsed_time_sec": 6.84,
+    "observed_fps": 21.94,
     "hardware": "Intel(R) Core(TM) i7-14650HX CPU",
     "runtime": "PyTorch 2.14.0+cpu"
   },

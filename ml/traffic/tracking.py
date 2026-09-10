@@ -3,7 +3,6 @@ import json
 import os
 import sys
 import time
-from collections import Counter
 import cv2
 import torch
 from ultralytics import YOLO
@@ -34,9 +33,10 @@ def track_and_count_vehicles(
 ) -> dict:
     """
     Performs Stage 2 ByteTrack tracking & Stage 3 vehicle counting and class breakdown on an input video.
-    
+
     Counting is based strictly on unique tracked vehicle identities (ByteTrack track_ids), NOT raw frame detections.
-    Class breakdown is computed per unique track_id using majority voting across observed frames.
+    Class breakdown uses the last class label produced by YOLOv8n+ByteTrack for each track_id.
+    No class smoothing, correction, or majority-vote is applied.
     """
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Input video not found: {video_path}")
@@ -162,26 +162,25 @@ def track_and_count_vehicles(
     observed_fps = frame_index / elapsed_time if elapsed_time > 0 else 0.0
 
     # STAGE 3 UNIQUE VEHICLE COUNTING & CLASS BREAKDOWN LOGIC
+    # Class assignment: use the last class label produced by YOLOv8n+ByteTrack for each track_id.
+    # No majority vote, smoothing, or correction is applied.
     total_unique_tracked_vehicles = len(track_observations)
     unique_class_breakdown = {c: 0 for c in sorted(list(APPROVED_CLASSES))}
     class_switching_ids = []
-    track_primary_classes = {}
 
     for tid, obs_list in track_observations.items():
         observed_classes = [obs[1] for obs in obs_list]
-        unique_classes_for_id = set(observed_classes)
-        
-        # Majority voting for primary class assignment per track ID
-        primary_class = Counter(observed_classes).most_common(1)[0][0]
-        track_primary_classes[tid] = primary_class
-        unique_class_breakdown[primary_class] += 1
+        unique_classes_for_id = list(dict.fromkeys(observed_classes))  # ordered unique, preserves first occurrence order
 
-        if len(unique_classes_for_id) > 1:
+        # Use the last class assignment from the pipeline (final frame this track_id was seen)
+        last_class = observed_classes[-1]
+        unique_class_breakdown[last_class] += 1
+
+        if len(set(observed_classes)) > 1:
             class_switching_ids.append({
                 "track_id": tid,
-                "observed_classes": list(unique_classes_for_id),
-                "class_counts": dict(Counter(observed_classes)),
-                "assigned_primary_class": primary_class
+                "observed_classes_sequence_unique": unique_classes_for_id,
+                "last_observed_class": last_class
             })
 
     sum_class_counts = sum(unique_class_breakdown.values())
@@ -209,7 +208,7 @@ def track_and_count_vehicles(
         "class_consistency": {
             "class_switching_track_ids_count": len(class_switching_ids),
             "class_switching_details": class_switching_ids,
-            "rule": "Majority vote across observed frames for each unique track_id"
+            "rule": "Last class label produced by YOLOv8n+ByteTrack per track_id — no smoothing or correction applied"
         },
         "raw_frame_detections": {
             "total_raw_detections": sum(raw_detection_counts.values()),

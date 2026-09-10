@@ -1,85 +1,77 @@
 # TransitEye Person 3 — Missing Infrastructure Detection Module
 
-> **Module Status**: `DATASET PREPARED — TRAINING PENDING`  
+> **Module Status**: `TRAINED & VERIFIED — READY FOR HANDOFF`  
 > **Model Family**: YOLOv8n  
 > **Target Domain**: Edge-AI Missing & Deficient Urban Infrastructure Detection  
+> **Best Model Checkpoint**: `runs/experiments/p3_missing_infra_exp1/weights/best.pt`  
+> **Inference Entry Point**: `scripts/p3_inference.py`  
 
 ---
 
 ## 1. Module Overview
 
-The Missing Infrastructure module transforms public bus cameras into mobile sensors for detecting missing, damaged, or deficient urban infrastructure (such as missing/damaged street signage or broken/damaged utility poles).
+The Missing Infrastructure module transforms public bus cameras into mobile sensors for detecting missing, damaged, or deficient urban infrastructure (specifically roadside traffic signs and electrical/utility poles).
 
-Observations are processed locally at the edge using YOLOv8n and normalized via `MissingInfrastructureAdapter` into canonical `CanonicalDetection` payloads for the TransitEye Edge Orchestrator and Central GIS Dashboard.
-
----
-
-## 2. Architecture & Pipeline
-
-```text
-Camera / Video Stream
-       │
-       ▼
-[ml/missing_infrastructure/inference.py] (YOLOv8n Inference Engine)
-       │
-       ▼ Raw Bounding Boxes & Confidence Scores
-[ml/missing_infrastructure/adapter.py] (MissingInfrastructureAdapter)
-       │
-       ▼ Canonical Detection Payload (Pydantic / JSON)
-Edge Orchestrator / Backend Pipeline
-```
+Observations are processed locally at the edge using YOLOv8n (`runs/experiments/p3_missing_infra_exp1/weights/best.pt`) and formatted via `scripts/p3_inference.py` or normalized via `MissingInfrastructureAdapter` into canonical `CanonicalDetection` payloads for the TransitEye Edge Orchestrator and Central GIS Dashboard.
 
 ---
 
-## 3. Dataset & Class Status
+## 2. Model & Performance Summary
 
-- **Dataset Source**: Urban Issues Dataset (Kaggle: `akinduhiman`)
-- **Canonical Processed Dataset**: `data/processed/p3_missing_infrastructure/`
-- **Verified Target Classes**:
-  - `0`: `broken_signage` (2,310 instances across 2,295 images)
-  - `1`: `broken_pole` (9,316 instances across 7,586 images)
-- **Dataset Preparation Script**: `scripts/prepare_p3_missing_infrastructure_dataset.py`
-- **Class Definitions File**: `ml/missing_infrastructure/classes.txt`
-- **Weights Status**: `WEIGHTS STATUS: NOT TRAINED` (Training has NOT yet occurred)
+- **Model Architecture**: YOLOv8n (Object Detection)
+- **Training Epochs**: 20 Completed Epochs on CPU (Seed 42)
+- **Input Resolution**: $640 \times 640$ pixels
+- **Best Weights Location**: `runs/experiments/p3_missing_infra_exp1/weights/best.pt`
 
----
-
-## 4. Module Directory Structure
-
-```text
-ml/missing_infrastructure/
-├── README.md              # Module architecture & status documentation
-├── classes.txt            # Target class definitions (Pending dataset verification)
-├── metrics.md             # Empirical performance metrics log
-├── requirements.txt       # Module Python dependencies
-├── inference.py           # YOLOv8n inference pipeline
-├── adapter.py             # Canonical TransitEye ModelAdapter implementation
-├── weights/               # Model weights directory (Target: best.pt)
-├── sample_input/          # Test input images directory
-├── sample_output/         # Model output predictions directory
-└── experiments/           # Experiment specifications and reports log
-```
+### Key Empirical Test Metrics (147 Test Images, 189 Instances)
+- **Precision**: `0.706` (70.6%)
+- **Recall**: `0.870` (87.0%)
+- **mAP50**: `0.834` (83.4%)
+- **mAP50-95**: `0.529` (52.9%)
 
 ---
 
-## 5. Training Plan
+## 3. Dataset & Target Classes
 
-Training will be executed via `scripts/train_missing_infrastructure.py` once a verified custom-labelled dataset is made available:
+- **Canonical Dataset Location**: `data/processed/p3_missing_infrastructure/`
+- **Class Definitions**:
+  - `0`: `broken_signage` (Damaged, missing, tilted, or vandalized road signs)
+  - `1`: `broken_pole` (Damaged, broken, leaning, or fallen electrical/utility poles and structural wiring)
+
+---
+
+## 4. Inference Usage
+
+### Running Single-Image Inference
+Execute the inference wrapper script from the repository root:
 
 ```bash
-.venv/bin/python3 scripts/train_missing_infrastructure.py \
-  --data-yaml path/to/missing_infra_data.yaml \
-  --epochs 25 \
-  --imgsz 320 \
-  --project runs/experiments \
-  --name p3_missing_infra_exp1 \
-  --weights-dir ml/missing_infrastructure/weights
+python scripts/p3_inference.py data/processed/p3_missing_infrastructure/images/test/1365_jpg.rf.0beeb10e870b3267c6ccceaa8a77fa29.jpg
+```
+
+### Expected Standard JSON Output
+```json
+{
+  "success": true,
+  "count": 1,
+  "detections": [
+    {
+      "type": "broken_signage",
+      "confidence": 0.7897,
+      "bbox": {
+        "x1": 100.93,
+        "y1": 56.18,
+        "x2": 566.95,
+        "y2": 640.0
+      }
+    }
+  ]
+}
 ```
 
 ---
 
-## 6. Current Limitations & Deferred Items
+## 5. Master Handoff Documentation
 
-- **Model Training**: `NOT RUN` (Awaiting dataset arrival and verification).
-- **Integration Status**: `MODULE SETUP COMPLETE — INTEGRATION PENDING`.
-- **Hardware Target**: Initial smoke test on CPU; full training planned for GPU.
+Detailed technical handoff specifications for the Backend and Frontend engineering teams are documented in:  
+📄 **[docs/P3_MISSING_INFRASTRUCTURE_HANDOFF.md](../../docs/P3_MISSING_INFRASTRUCTURE_HANDOFF.md)**

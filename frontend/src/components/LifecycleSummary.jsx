@@ -4,18 +4,10 @@ import {
   Clock,
   CheckCircle2,
   CheckCheck,
-  ShieldAlert,
   Info,
   Lock
 } from 'lucide-react';
 
-/**
- * LifecycleSummary — Displays summary metric cards based strictly on backend detection data.
- *
- * Anti-Hallucination:
- * - All counts are MEASURED from actual backend detection objects.
- * - No fake technician counts, repair times, or SLA metrics are fabricated.
- */
 export default function LifecycleSummary({ records = [] }) {
   const totalCount = records.length;
   const pendingCount = records.filter((r) => r.status === 'pending').length;
@@ -27,99 +19,107 @@ export default function LifecycleSummary({ records = [] }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* Total Observations */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 flex flex-col justify-between">
+      <div className="liquid-glass rounded-2xl p-4 flex flex-col justify-between border border-[#334155]/20 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-medium uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
             Total Telemetry
           </span>
-          <Activity className="w-4 h-4 text-cyan-400" />
+          <div className="p-1.5 rounded-lg bg-[#1e293b] text-[#FFFFF0]">
+            <Activity className="w-3.5 h-3.5" />
+          </div>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-black font-mono text-white">
+          <span className="text-2xl font-bold text-[#1e293b]">
             {totalCount}
           </span>
-          <span className="text-[10px] font-mono text-slate-500">records</span>
+          <span className="text-xs text-[#334155]">records</span>
         </div>
-        <p className="text-[10px] text-slate-500 font-mono mt-1">
+        <p className="text-[10px] text-[#334155] mt-1">
           Backend observations
         </p>
       </div>
 
       {/* Pending / Detected */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 flex flex-col justify-between">
+      <div className="liquid-glass rounded-2xl p-4 flex flex-col justify-between border border-[#334155]/20 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-medium uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
             1. Detected
           </span>
-          <Clock className="w-4 h-4 text-amber-400" />
+          <div className="p-1.5 rounded-lg bg-[#1e293b] text-[#FFFFF0]">
+            <Clock className="w-3.5 h-3.5" />
+          </div>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-black font-mono text-amber-400">
+          <span className="text-2xl font-bold text-[#1e293b]">
             {pendingCount}
           </span>
-          <span className="text-[10px] font-mono text-slate-500">pending</span>
+          <span className="text-xs text-[#334155]">pending</span>
         </div>
-        <p className="text-[10px] text-slate-500 font-mono mt-1">
+        <p className="text-[10px] text-[#334155] mt-1">
           Awaiting verification
         </p>
       </div>
 
       {/* Verified (Confirmed + In Review) */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 flex flex-col justify-between">
+      <div className="liquid-glass rounded-2xl p-4 flex flex-col justify-between border border-[#334155]/20 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-medium uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
             2. Verified
           </span>
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="p-1.5 rounded-lg bg-[#1e293b] text-[#FFFFF0]">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          </div>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-black font-mono text-emerald-400">
+          <span className="text-2xl font-bold text-[#1e293b]">
             {confirmedCount + inReviewCount}
           </span>
-          <span className="text-[10px] font-mono text-slate-500">
+          <span className="text-xs text-[#334155]">
             {inReviewCount > 0 ? `${confirmedCount} conf / ${inReviewCount} rev` : 'confirmed'}
           </span>
         </div>
-        <p className="text-[10px] text-slate-500 font-mono mt-1">
+        <p className="text-[10px] text-[#334155] mt-1">
           Multi-pass confirmed
         </p>
       </div>
 
       {/* Resolved */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 flex flex-col justify-between">
+      <div className="liquid-glass rounded-2xl p-4 flex flex-col justify-between border border-[#334155]/20 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-medium uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
             Backend Resolved
           </span>
-          <CheckCheck className="w-4 h-4 text-indigo-400" />
+          <div className="p-1.5 rounded-lg bg-[#1e293b] text-[#FFFFF0]">
+            <CheckCheck className="w-3.5 h-3.5" />
+          </div>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-black font-mono text-indigo-400">
+          <span className="text-2xl font-bold text-[#1e293b]">
             {resolvedCount}
           </span>
-          <span className="text-[10px] font-mono text-slate-500">resolved</span>
+          <span className="text-xs text-[#334155]">resolved</span>
         </div>
-        <p className="text-[10px] text-slate-500 font-mono mt-1">
+        <p className="text-[10px] text-[#334155] mt-1">
           {rejectedCount > 0 ? `${rejectedCount} rejected` : 'Closed state'}
         </p>
       </div>
 
       {/* Contract Capability Badge */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5 flex flex-col justify-between col-span-2 sm:col-span-1">
+      <div className="liquid-glass rounded-2xl p-4 flex flex-col justify-between border border-[#334155]/20 shadow-xs col-span-2 sm:col-span-1">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-medium uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
             Backend Contract
           </span>
-          <Lock className="w-4 h-4 text-slate-500" />
+          <Lock className="w-4 h-4 text-[#334155]" />
         </div>
         <div className="mt-2 flex items-center gap-1.5">
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800/60">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1e293b] text-[#FFFFF0]">
             READ-ONLY
           </span>
-          <span className="text-[10px] font-mono text-slate-400">v1.0 GET</span>
+          <span className="text-[10px] text-[#334155] font-bold">v1.0 GET</span>
         </div>
-        <p className="text-[10px] text-slate-500 font-mono mt-1 flex items-center gap-1">
-          <Info className="w-3 h-3 text-slate-500 shrink-0" />
+        <p className="text-[10px] text-[#334155] mt-1 flex items-center gap-1">
+          <Info className="w-3 h-3 text-[#334155] shrink-0" />
           Mutations deferred
         </p>
       </div>

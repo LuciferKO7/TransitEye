@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { 
@@ -15,7 +15,10 @@ import {
   ShieldAlert,
   Car,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Filter,
+  Maximize2,
+  ExternalLink
 } from 'lucide-react';
 
 // Fallback operational map center (Delhi NCR operational corridor established in schema examples)
@@ -37,7 +40,7 @@ function isValidCoordinate(lat, lng) {
 /**
  * Leaflet Custom DIV Icon Generator for Detection Categories & Severity
  */
-function createDetectionIcon(type, severity) {
+function createDetectionIcon(type, severity, isSelected = false) {
   let bgColor = 'bg-amber-500';
   let borderColor = 'border-amber-300';
   let glyph = '⚠️';
@@ -55,13 +58,20 @@ function createDetectionIcon(type, severity) {
   const isCritical = severity === 'critical';
   const isHigh = severity === 'high';
   const ringSize = isCritical ? 'w-9 h-9' : isHigh ? 'w-8 h-8' : 'w-7 h-7';
+  const selectedStyle = isSelected
+    ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-125 z-50'
+    : '';
+  const selectedHalo = isSelected
+    ? '<div class="absolute w-12 h-12 rounded-full border-2 border-cyan-400 bg-cyan-400/20 animate-ping opacity-80 pointer-events-none"></div>'
+    : '';
 
   return L.divIcon({
     className: 'custom-gis-marker',
     html: `
       <div class="relative flex items-center justify-center">
-        ${isCritical ? `<div class="absolute ${ringSize} rounded-full ${bgColor} animate-ping opacity-75"></div>` : ''}
-        <div class="relative ${ringSize} rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center border-2 ${borderColor} shadow-lg transition-transform hover:scale-110">
+        ${selectedHalo}
+        ${isCritical && !isSelected ? `<div class="absolute ${ringSize} rounded-full ${bgColor} animate-ping opacity-75"></div>` : ''}
+        <div class="relative ${ringSize} rounded-full ${bgColor} text-white font-bold text-xs flex items-center justify-center border-2 ${borderColor} shadow-lg transition-transform hover:scale-110 ${selectedStyle}">
           <span style="font-size: 13px; line-height: 1;">${glyph}</span>
         </div>
       </div>
@@ -103,22 +113,93 @@ function createTrafficIcon(congestionLevel, vehicleCount) {
 }
 
 /**
- * Helper component to fit map bounds to valid coordinates once when datasets update.
+ * MapBoundsController Component
+ * - Performs initial bounds fit ONCE on data arrival.
+ * - Performs explicit manual bounds fit when fitCounter changes.
+ * - Prevents viewport movement on marker clicks or filter changes (FitBounds Safety).
  */
-function MapBoundsController({ allCoordinates }) {
+function MapBoundsController({ allCoordinates, fitCounter }) {
   const map = useMap();
+  const hasFittedInitialRef = useRef(false);
 
+  // Initial load fit
   useEffect(() => {
-    if (allCoordinates && allCoordinates.length > 0) {
+    if (!hasFittedInitialRef.current && allCoordinates && allCoordinates.length > 0) {
       map.fitBounds(allCoordinates, { padding: [50, 50], maxZoom: 14 });
+      hasFittedInitialRef.current = true;
     }
   }, [allCoordinates, map]);
+
+  // Explicit user trigger fit
+  useEffect(() => {
+    if (fitCounter > 0 && allCoordinates && allCoordinates.length > 0) {
+      map.fitBounds(allCoordinates, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [fitCounter, allCoordinates, map]);
 
   return null;
 }
 
-export default function LiveMap({ detections, vehicleDensity, layersState = {} }) {
+/**
+ * MapPanController Component
+ * Smoothly pans map to a target WGS84 location when explicitly requested via "Focus on Map".
+ */
+function MapPanController({ focusedLocation }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (
+      focusedLocation &&
+      typeof focusedLocation.latitude === 'number' &&
+      typeof focusedLocation.longitude === 'number' &&
+      isFinite(focusedLocation.latitude) &&
+      isFinite(focusedLocation.longitude)
+    ) {
+      map.flyTo([focusedLocation.latitude, focusedLocation.longitude], 15, {
+        duration: 1.2,
+      });
+    }
+  }, [focusedLocation, map]);
+
+  return null;
+}
+
+/**
+ * Returns true when a detection matches the active mapHighlightFilter.
+ * Used to dim or fully show a marker.
+ */
+function detectionMatchesHighlight(detection, filter) {
+  if (!filter) return true;
+  if (filter === 'road_defect') return detection.type === 'road_defect';
+  if (filter === 'waterlogging') return detection.type === 'waterlogging';
+  if (filter === 'vru_safety') return detection.type === 'vru_safety';
+  if (filter === 'high_critical') return detection.severity === 'high' || detection.severity === 'critical';
+  if (filter === 'traffic') return false; // traffic markers handled separately
+  return true;
+}
+
+const HIGHLIGHT_FILTER_LABELS = {
+  road_defect: 'Road Defects',
+  waterlogging: 'Waterlogging',
+  vru_safety: 'VRU Safety',
+  high_critical: 'High / Critical Severity',
+  traffic: 'Traffic Observations',
+};
+
+export default function LiveMap({
+  detections,
+  vehicleDensity,
+  layersState = {},
+  selectedDetection = null,
+  onSelectDetection,
+  focusedLocation = null,
+  mapHighlightFilter = null,
+  onClearHighlight,
+}) {
   const [showLegend, setShowLegend] = useState(true);
+  const [severityFilter, setSeverityFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [fitCounter, setFitCounter] = useState(0);
 
   const isDetectionsLoading = detections?.loading;
   const isDetectionsError = Boolean(detections?.error);
@@ -135,57 +216,48 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
   );
 
   // Filter valid Detections
-  const { validDetections, skippedDetectionsCount } = useMemo(() => {
+  const { validDetections } = useMemo(() => {
     const valid = [];
-    let skipped = 0;
-
     rawDetections.forEach((item) => {
       const lat = item?.location?.latitude;
       const lng = item?.location?.longitude;
-
       if (isValidCoordinate(lat, lng)) {
         valid.push(item);
-      } else {
-        skipped++;
       }
     });
-
-    return { validDetections: valid, skippedDetectionsCount: skipped };
+    return { validDetections: valid };
   }, [rawDetections]);
 
   // Filter valid Traffic Observations
-  const { validTraffic, skippedTrafficCount } = useMemo(() => {
+  const { validTraffic } = useMemo(() => {
     const valid = [];
-    let skipped = 0;
-
     rawDensity.forEach((item) => {
       const lat = item?.location?.latitude;
       const lng = item?.location?.longitude;
-
       if (isValidCoordinate(lat, lng)) {
         valid.push(item);
-      } else {
-        skipped++;
       }
     });
-
-    return { validTraffic: valid, skippedTrafficCount: skipped };
+    return { validTraffic: valid };
   }, [rawDensity]);
 
-  // Active Map Markers filtered by layer toggles
+  // Active Map Markers filtered by layer toggles and HUD filters
   const activeDetections = useMemo(() => {
     return validDetections.filter((d) => {
       const typeKey = d.type || 'road_defect';
-      return layersState[typeKey] !== false;
+      if (layersState[typeKey] === false) return false;
+      if (severityFilter !== 'all' && (d.severity || 'low') !== severityFilter) return false;
+      if (statusFilter !== 'all' && (d.status || 'pending') !== statusFilter) return false;
+      return true;
     });
-  }, [validDetections, layersState]);
+  }, [validDetections, layersState, severityFilter, statusFilter]);
 
   const activeTraffic = useMemo(() => {
     if (layersState.traffic === false) return [];
     return validTraffic;
   }, [validTraffic, layersState]);
 
-  // All valid coordinates for initial bounds fitting
+  // All valid coordinates for bounds fitting
   const allCoordinates = useMemo(() => {
     const coords = [];
     activeDetections.forEach((d) => coords.push([d.location.latitude, d.location.longitude]));
@@ -193,36 +265,103 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
     return coords;
   }, [activeDetections, activeTraffic]);
 
+  // Derived context metrics for map summary HUD
+  const highCriticalCount = useMemo(() => {
+    return activeDetections.filter(
+      (d) => d.severity === 'high' || d.severity === 'critical'
+    ).length;
+  }, [activeDetections]);
+
+  const handleManualFit = () => {
+    setFitCounter((prev) => prev + 1);
+  };
+
+  const hasActiveHudFilters = severityFilter !== 'all' || statusFilter !== 'all';
+  const isMapEmpty = activeDetections.length === 0 && activeTraffic.length === 0;
+
   return (
-    <div className="relative w-full h-[540px] bg-slate-950/90 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col">
+    <div className="relative w-full h-[540px] bg-[#FFFFF0] border border-[#334155]/20 rounded-2xl overflow-hidden shadow-xs flex flex-col">
       {/* Top Map HUD Bar */}
-      <div className="relative z-[1000] flex flex-wrap items-center justify-between bg-slate-950/95 border-b border-slate-800/80 px-4 py-2.5 gap-2">
+      <div className="relative z-10 flex flex-wrap items-center justify-between bg-[#FFFFF0]/95 border-b border-[#334155]/15 px-4 py-2.5 gap-3">
+        {/* Title */}
         <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-100 flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-cyan-400" />
-            LIVE CITY MAP — GIS PERCEPTION LAYERS
+          <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] animate-pulse" />
+          <span className="text-xs font-bold uppercase tracking-wider text-[#1e293b] flex items-center gap-1.5">
+            <Radio className="w-3.5 h-3.5 text-[#1e293b]" />
+            OPERATIONAL MAP — GIS TELEMETRY
           </span>
         </div>
 
-        {/* Telemetry Layer Count Summary */}
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="bg-slate-900 text-amber-300 px-2 py-0.5 rounded border border-slate-800 flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3 text-amber-400" />
-            Defects: <strong>{activeDetections.filter(d => d.type === 'road_defect').length}</strong>
+        {/* Spatial Filters & Actions */}
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          {/* Severity Filter */}
+          <div className="flex items-center gap-1 bg-[#FFFFF0] px-2.5 py-1 rounded-xl border border-[#334155]/20">
+            <Filter className="w-3 h-3 text-[#1e293b]" />
+            <select
+              value={severityFilter}
+              onChange={(e) => setSeverityFilter(e.target.value)}
+              className="bg-transparent text-[#1e293b] text-xs focus:outline-none cursor-pointer font-bold"
+            >
+              <option value="all" className="bg-[#FFFFF0]">Severity: All</option>
+              <option value="critical" className="bg-[#FFFFF0]">Critical</option>
+              <option value="high" className="bg-[#FFFFF0]">High</option>
+              <option value="medium" className="bg-[#FFFFF0]">Medium</option>
+              <option value="low" className="bg-[#FFFFF0]">Low</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-1 bg-[#FFFFF0] px-2.5 py-1 rounded-xl border border-[#334155]/20">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent text-[#1e293b] text-xs focus:outline-none cursor-pointer font-bold"
+            >
+              <option value="all" className="bg-[#FFFFF0]">Status: All</option>
+              <option value="pending" className="bg-[#FFFFF0]">Pending</option>
+              <option value="confirmed" className="bg-[#FFFFF0]">Confirmed</option>
+              <option value="in_review" className="bg-[#FFFFF0]">In Review</option>
+              <option value="resolved" className="bg-[#FFFFF0]">Resolved</option>
+              <option value="rejected" className="bg-[#FFFFF0]">Rejected</option>
+            </select>
+          </div>
+
+          {/* Fit Observations Button */}
+          <button
+            onClick={handleManualFit}
+            title="Recenter map to encompass all currently visible observations"
+            className="flex items-center gap-1 px-3 py-1 rounded-xl bg-[#1e293b] hover:bg-[#334155] text-[#FFFFF0] font-bold text-xs transition-colors cursor-pointer"
+          >
+            <Maximize2 className="w-3 h-3 text-[#FFFFF0]" />
+            <span>Fit Observations</span>
+          </button>
+        </div>
+
+        {/* Dynamic Context Summary + Stage 11 Focus Filter Dismiss Chip */}
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          <span className="bg-[#334155]/10 text-[#334155] px-2.5 py-1 rounded-full border border-[#334155]/15 font-bold">
+            Visible Observations: <strong className="text-[#1e293b]">{activeDetections.length + activeTraffic.length}</strong>
           </span>
-          <span className="bg-slate-900 text-cyan-300 px-2 py-0.5 rounded border border-slate-800 flex items-center gap-1">
-            <Droplet className="w-3 h-3 text-cyan-400" />
-            Waterlog: <strong>{activeDetections.filter(d => d.type === 'waterlogging').length}</strong>
-          </span>
-          <span className="bg-slate-900 text-rose-300 px-2 py-0.5 rounded border border-slate-800 flex items-center gap-1">
-            <ShieldAlert className="w-3 h-3 text-rose-400" />
-            VRU: <strong>{activeDetections.filter(d => d.type === 'vru_safety').length}</strong>
-          </span>
-          <span className="bg-slate-900 text-emerald-300 px-2 py-0.5 rounded border border-slate-800 flex items-center gap-1">
-            <Car className="w-3 h-3 text-emerald-400" />
-            Traffic: <strong>{activeTraffic.length}</strong>
-          </span>
+          {highCriticalCount > 0 && (
+            <span className="bg-[#1e293b] text-[#FFFFF0] px-2.5 py-1 rounded-full font-bold text-[10px]">
+              {highCriticalCount} High/Critical
+            </span>
+          )}
+          {/* Focus filter active chip */}
+          {mapHighlightFilter && (
+            <span className="inline-flex items-center gap-1.5 bg-[#1e293b] text-[#FFFFF0] px-2.5 py-1 rounded-full font-bold text-[10px]">
+              <span>Focused: {HIGHLIGHT_FILTER_LABELS[mapHighlightFilter] || mapHighlightFilter}</span>
+              {onClearHighlight && (
+                <button
+                  onClick={onClearHighlight}
+                  className="ml-0.5 text-[#FFFFF0] hover:text-[#94A3B8] transition-colors"
+                  title="Clear map focus filter"
+                >
+                  ✕
+                </button>
+              )}
+            </span>
+          )}
         </div>
       </div>
 
@@ -234,30 +373,43 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
           scrollWheelZoom={true}
           className="w-full h-full z-0"
         >
-          {/* OpenStreetMap Standard Tile Layer */}
+          {/* Tile Layer */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | TransitEye SIH 2026'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Automatic Viewport Controller */}
-          <MapBoundsController allCoordinates={allCoordinates} />
+          {/* Map Controllers */}
+          <MapBoundsController allCoordinates={allCoordinates} fitCounter={fitCounter} />
+          <MapPanController focusedLocation={focusedLocation} />
 
-          {/* Render Active Detection Markers */}
+          {/* Active Detection Markers */}
           {activeDetections.map((detection) => {
             const { latitude, longitude } = detection.location;
             const type = detection.type || 'road_defect';
             const severity = detection.severity || 'low';
-            const icon = createDetectionIcon(type, severity);
+            const isSelected = selectedDetection && selectedDetection.id === detection.id;
+            const icon = createDetectionIcon(type, severity, isSelected);
+            // Stage 11: Dim non-matching markers when a highlight filter is active
+            const isDimmed =
+              mapHighlightFilter !== null &&
+              !isSelected &&
+              !detectionMatchesHighlight(detection, mapHighlightFilter);
 
             return (
               <Marker
                 key={`det-${detection.id || `${latitude}-${longitude}`}`}
                 position={[latitude, longitude]}
                 icon={icon}
+                opacity={isDimmed ? 0.25 : 1}
+                eventHandlers={{
+                  click: () => {
+                    if (onSelectDetection) onSelectDetection(detection);
+                  },
+                }}
               >
                 <Popup className="transiteye-popup">
-                  <div className="p-1 space-y-2 min-w-[220px] text-slate-100">
+                  <div className="p-1 space-y-2 min-w-[230px] text-slate-100">
                     <div className="flex items-center justify-between border-b border-slate-700 pb-1.5">
                       <span className="font-mono font-bold text-xs uppercase tracking-wider text-cyan-300 flex items-center gap-1">
                         {type === 'waterlogging' ? '💧 Waterlogging' : type === 'vru_safety' ? '🛡️ VRU Risk' : '⚠️ Road Defect'}
@@ -274,7 +426,7 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
                     <div className="text-xs space-y-1 text-slate-300">
                       {detection.subtype && (
                         <div>
-                          <strong className="text-slate-400">Subtype:</strong> {detection.subtype}
+                          <strong className="text-slate-400">Subtype:</strong> {detection.subtype.replace(/_/g, ' ')}
                         </div>
                       )}
                       {detection.confidence !== undefined && (
@@ -284,7 +436,7 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
                       )}
                       {detection.bus_id && (
                         <div>
-                          <strong className="text-slate-400">Bus Unit:</strong> {detection.bus_id}
+                          <strong className="text-slate-400">Sensing Bus:</strong> {detection.bus_id}
                         </div>
                       )}
                       {detection.segment_id && (
@@ -294,33 +446,50 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
                       )}
                       {detection.status && (
                         <div>
-                          <strong className="text-slate-400">Status:</strong> <span className="font-mono text-cyan-400">{detection.status}</span>
+                          <strong className="text-slate-400">Backend Status:</strong> <span className="font-mono text-cyan-400">{detection.status}</span>
                         </div>
                       )}
+                      <div className="text-[10px] text-slate-400 font-mono pt-1">
+                        Lat: {latitude.toFixed(5)}, Lng: {longitude.toFixed(5)}
+                      </div>
                       {detection.timestamp && (
-                        <div className="text-[10px] text-slate-400 font-mono pt-1.5 border-t border-slate-800">
+                        <div className="text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800">
                           Observed: {new Date(detection.timestamp).toLocaleString()}
                         </div>
                       )}
                     </div>
+
+                    <button
+                      onClick={() => onSelectDetection && onSelectDetection(detection)}
+                      className="w-full mt-2 py-1 px-2.5 rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 font-mono text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                    >
+                      <Info className="w-3.5 h-3.5" />
+                      <span>Inspect Observation Details</span>
+                      <ExternalLink className="w-3 h-3 ml-auto opacity-70" />
+                    </button>
                   </div>
                 </Popup>
               </Marker>
             );
           })}
 
-          {/* Render Active Traffic Observation Markers */}
+          {/* Active Traffic Observation Markers */}
           {activeTraffic.map((traffic) => {
             const { latitude, longitude } = traffic.location;
             const vehicleCount = Number(traffic.vehicle_count) || 0;
             const congestionLevel = traffic.metadata?.congestion_level || 'Moderate';
             const icon = createTrafficIcon(congestionLevel, vehicleCount);
+            // Stage 11: When a detection-type filter is active, dim traffic markers;
+            // when filter is 'traffic', keep them fully visible
+            const isTrafficDimmed =
+              mapHighlightFilter !== null && mapHighlightFilter !== 'traffic';
 
             return (
               <Marker
                 key={`traffic-${traffic.id || `${latitude}-${longitude}`}`}
                 position={[latitude, longitude]}
                 icon={icon}
+                opacity={isTrafficDimmed ? 0.25 : 1}
               >
                 <Popup className="transiteye-popup">
                   <div className="p-1 space-y-2 min-w-[220px] text-slate-100">
@@ -375,6 +544,27 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
           })}
         </MapContainer>
 
+        {/* Spatial Empty State Overlay */}
+        {!isDetectionsLoading && !isDensityLoading && isMapEmpty && (
+          <div className="absolute inset-0 z-[500] bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center pointer-events-auto">
+            <MapPin className="w-10 h-10 text-slate-600 mb-2 opacity-50" />
+            <p className="text-sm font-mono font-bold text-slate-300">
+              No observations match the current filters
+            </p>
+            <p className="text-xs text-slate-500 font-mono mt-1 max-w-sm">
+              All observation layers may be toggled off or filtered out. Try adjusting your GIS layer or severity filters.
+            </p>
+            {hasActiveHudFilters && (
+              <button
+                onClick={() => { setSeverityFilter('all'); setStatusFilter('all'); }}
+                className="mt-3 px-3 py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-mono text-xs hover:bg-cyan-900 transition-colors"
+              >
+                Reset Map Filters
+              </button>
+            )}
+          </div>
+        )}
+
         {/* GIS Interactive Map Legend (Bottom Right Overlay) */}
         <div className="absolute bottom-4 right-4 z-[1000] bg-slate-950/95 border border-slate-800 rounded-lg shadow-xl p-3 max-w-xs text-xs font-sans">
           <div className="flex items-center justify-between mb-2 pb-1 border-b border-slate-800">
@@ -420,13 +610,17 @@ export default function LiveMap({ detections, vehicleDensity, layersState = {} }
               {/* Severity Hierarchy */}
               <div className="pt-2 border-t border-slate-800/80">
                 <span className="text-[10px] font-mono text-slate-400 uppercase font-semibold block mb-1">
-                  Severity Hierarchy
+                  Severity Hierarchy & Selection
                 </span>
                 <div className="flex items-center justify-between font-mono text-[10px]">
                   <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Low</span>
                   <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">Medium</span>
                   <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">High</span>
                   <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 animate-pulse">Critical</span>
+                </div>
+                <div className="mt-2 text-[10px] font-mono text-cyan-400 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 ring-2 ring-cyan-400" />
+                  <span>Cyan Halo = Selected Detection</span>
                 </div>
               </div>
             </div>

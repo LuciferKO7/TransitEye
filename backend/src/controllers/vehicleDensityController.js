@@ -29,3 +29,22 @@ exports.getVehicleDensity = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteVehicleDensity = async (req, res, next) => {
+  try {
+    const deleted = await vehicleDensityService.deleteVehicleDensity(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "Vehicle density record not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Vehicle density record deleted",
+      data: deleted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

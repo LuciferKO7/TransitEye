@@ -29,3 +29,22 @@ exports.getIncidents = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteIncident = async (req, res, next) => {
+  try {
+    const deleted = await incidentService.deleteIncident(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "Incident record not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Incident record deleted",
+      data: deleted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

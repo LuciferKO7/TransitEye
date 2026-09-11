@@ -1,36 +1,87 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-/* Base styles & Leaflet overrides */
+/* Neue Montreal Font Import & Fallbacks */
+@font-face {
+  font-family: 'Neue Montreal';
+  src: local('Neue Montreal'), local('NeueMontreal-Regular'), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Stage 13 Specified 60-30-10 Light Theme Color Palette */
+  --color-background: #FFFFF0;
+  --color-secondary: #334155;
+  --color-primary: #1e293b;
+  --color-accent: #94A3B8;
+
+  --color-accent-sage: #8ea58c;
+  --color-accent-butter: #fce68d;
+
+  /* Dynamic Accent State Variable */
+  --current-accent: var(--color-accent);
+
+  font-family: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
+  color-scheme: light;
+}
+
+/* Force Neue Montreal Font Globally Across Entire UI */
+* {
+  font-family: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: var(--color-background);
+  color: var(--color-primary);
   min-height: 100vh;
+}
+
+/* Subtle Decorative Background Dot Pattern (SVG Data URI - NO GRADIENTS) */
+.bg-dot-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='3' cy='3' r='1.25' fill='%23000000' opacity='0.12'/%3E%3C/svg%3E");
+  background-size: 24px 24px;
+}
+
+/* Restrained Liquid Glass Effect (Translucency + Backdrop Blur + Subtle Border ONLY) */
+.liquid-glass {
+  background-color: rgba(255, 255, 240, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.18);
+}
+
+.liquid-glass-dark {
+  background-color: rgba(30, 41, 59, 0.90);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.22);
 }
 
 /* Custom leaflet map adjustments */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background: #0f172a;
+  background: #FFFFF0;
 }
 
-/* Custom Leaflet Dark Popup Styling */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: #0f172a !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 8px !important;
+/* Custom Leaflet Light Popup Styling matching TransitEye Palette */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #FFFFF0 !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(51, 65, 85, 0.2) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
 }
 
 .leaflet-popup-content {
@@ -39,29 +90,42 @@ body {
 }
 
 .leaflet-popup-close-button {
-  color: #94a3b8 !important;
+  color: #334155 !important;
   padding: 4px 8px 0 0 !important;
 }
 
 .leaflet-popup-close-button:hover {
-  color: #f8fafc !important;
+  color: #1e293b !important;
 }
 
 /* Custom GIS Marker Classes */
-.custom-gis-marker, .custom-gis-traffic-marker {
+.custom-gis-marker,
+.custom-gis-traffic-marker {
   background: transparent;
   border: none;
 }
 
-/* ── Stage 5: Incident Drawer Animations ── */
+/* ── Incident & Detail Drawer Animations ── */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .animate-fadeIn {

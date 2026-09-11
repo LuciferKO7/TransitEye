@@ -57,6 +57,10 @@ class DetectionService {
   async getDetectionById(id) {
     return await this.repository.findById(id);
   }
+
+  async deleteDetection(id) {
+    return await this.repository.deleteById(id);
+  }
 }
 
 module.exports = new DetectionService();

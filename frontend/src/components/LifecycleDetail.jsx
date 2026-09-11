@@ -15,8 +15,10 @@ import {
   UserCheck,
   ShieldCheck,
   Info,
-  Hash,
-  Activity
+  Image,
+  ExternalLink,
+  Compass,
+  AlertOctagon
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -26,18 +28,10 @@ const CATEGORY_ICONS = {
 };
 
 const SEVERITY_CLASSES = {
-  low: 'bg-blue-950 text-blue-300 border-blue-800/60',
-  medium: 'bg-amber-950 text-amber-300 border-amber-800/60',
-  high: 'bg-orange-950 text-orange-300 border-orange-800/60',
-  critical: 'bg-rose-950 text-rose-300 border-rose-800/60',
-};
-
-const STATUS_CLASSES = {
-  pending: 'bg-amber-950/80 text-amber-300 border-amber-700/50',
-  in_review: 'bg-cyan-950/80 text-cyan-300 border-cyan-700/50',
-  confirmed: 'bg-emerald-950/80 text-emerald-300 border-emerald-700/50',
-  resolved: 'bg-indigo-950/80 text-indigo-300 border-indigo-700/50',
-  rejected: 'bg-rose-950/80 text-rose-300 border-rose-700/50',
+  low: 'bg-[#334155]/5 text-[#334155] border border-[#334155]/15',
+  medium: 'bg-[#334155]/10 text-[#334155] border border-[#334155]/20',
+  high: 'bg-[#334155] text-[#FFFFF0] border border-[#334155]',
+  critical: 'bg-[#1e293b] text-[#FFFFF0] border border-[#1e293b]',
 };
 
 function formatTimestamp(ts) {
@@ -53,70 +47,69 @@ function formatTimestamp(ts) {
   }
 }
 
-function DataRow({ icon: Icon, label, value, mono = false, color = 'text-white' }) {
+function DataRow({ icon: Icon, label, value, color = 'text-[#1e293b]' }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-slate-800/40 text-xs">
-      <div className="flex items-center gap-2 text-slate-400">
-        {Icon && <Icon className="w-3.5 h-3.5 text-slate-500" />}
+    <div className="flex items-center justify-between py-2 border-b border-[#334155]/15 text-xs">
+      <div className="flex items-center gap-2 text-[#334155]">
+        {Icon && <Icon className="w-3.5 h-3.5 text-[#334155]" />}
         <span>{label}</span>
       </div>
-      <span className={`font-medium ${mono ? 'font-mono' : ''} ${color}`}>
+      <span className={`font-medium ${color}`}>
         {value ?? '—'}
       </span>
     </div>
   );
 }
 
-/**
- * LifecycleDetail — Slide-in drawer inspecting a detection observation's lifecycle status.
- *
- * Extensible Component Architecture:
- * - Designed with a dedicated "Workflow & Future Actions" section.
- * - When backend teammate deploys PATCH/PUT mutation endpoints, action handlers can be wired directly.
- */
-export default function LifecycleDetail({ detection, onClose }) {
+export default function LifecycleDetail({ detection, onClose, onFocusMap }) {
   if (!detection) return null;
 
   const IconComponent = CATEGORY_ICONS[detection.type] ?? AlertTriangle;
-  const severityClass = SEVERITY_CLASSES[detection.severity] ?? 'bg-slate-800 text-slate-300 border-slate-700';
-  const statusClass = STATUS_CLASSES[detection.status] ?? 'bg-slate-800 text-slate-400 border-slate-700';
+  const severityClass = SEVERITY_CLASSES[detection.severity] ?? 'bg-[#334155]/10 text-[#334155]';
   const confidencePct = Math.round((detection.confidence ?? 0) * 100);
 
   const loc = detection.location;
   const lat = loc?.latitude;
   const lng = loc?.longitude;
-  const isValidLoc = typeof lat === 'number' && typeof lng === 'number';
+  const isValidLoc = typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+
+  const handleFocusMap = () => {
+    if (isValidLoc && onFocusMap) {
+      onFocusMap({ latitude: lat, longitude: lng });
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[2000] flex justify-end bg-[#1e293b]/40 backdrop-blur-xs animate-fadeIn">
       {/* Backdrop click to close */}
       <div className="flex-1" onClick={onClose} />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-lg bg-slate-950 border-l border-slate-800/80 flex flex-col overflow-hidden shadow-2xl animate-slideIn">
+      <div className="relative w-full max-w-lg bg-[#FFFFF0] border-l border-[#334155]/20 flex flex-col overflow-hidden shadow-2xl animate-slideIn">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-slate-800/80 bg-slate-950">
+        <div className="flex items-start justify-between p-5 border-b border-[#334155]/15 bg-[#FFFFF0]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400">
+            <div className="p-2.5 rounded-xl bg-[#1e293b] text-[#FFFFF0]">
               <IconComponent className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold font-mono text-white capitalize">
-                {detection.subtype ? detection.subtype.replace(/_/g, ' ') : 'Detection Record'}
+              <h2 className="text-sm font-bold text-[#1e293b] capitalize">
+                {detection.subtype ? detection.subtype.replace(/_/g, ' ') : 'Detection Observation'}
               </h2>
-              <p className="text-[11px] text-slate-500 font-mono">
+              <p className="text-[11px] text-[#334155]">
                 ID: {detection.id}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className={`text-[10px] font-mono font-bold uppercase px-2 py-1 rounded border ${severityClass}`}>
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${severityClass}`}>
               {detection.severity ?? 'N/A'}
             </span>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="p-1.5 rounded-xl text-[#334155] hover:text-[#1e293b] hover:bg-[#334155]/10 transition-colors cursor-pointer"
+              aria-label="Close detail drawer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -127,61 +120,68 @@ export default function LifecycleDetail({ detection, onClose }) {
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* Section 1: Perception Overview */}
           <div>
-            <p className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155] mb-2">
               Observation Telemetry
             </p>
-            <div className="bg-slate-900/60 rounded-xl border border-slate-800/60 px-4 divide-y divide-slate-800/40">
-              <DataRow label="Domain Category" value={detection.type} mono />
-              <DataRow label="Subtype Label" value={detection.subtype} mono />
+            <div className="bg-[#334155]/5 rounded-2xl border border-[#334155]/15 px-4 divide-y divide-[#334155]/10">
+              <DataRow label="Domain Category" value={detection.type} />
+              <DataRow label="Subtype Label" value={detection.subtype ? detection.subtype.replace(/_/g, ' ') : '—'} />
               <DataRow
                 label="Backend Lifecycle Status"
                 value={detection.status ?? 'pending'}
-                mono
-                color="text-amber-400 font-bold"
+                color="text-[#1e293b] font-bold capitalize"
               />
               <DataRow
                 label="AI Perception Confidence"
-                value={`${confidencePct}%`}
-                mono
-                color={confidencePct >= 85 ? 'text-emerald-400 font-bold' : 'text-amber-400'}
+                value={`${confidencePct}% (Model Score)`}
+                color="text-[#1e293b] font-bold"
               />
               <DataRow
                 label="Confirmed Bus Passes"
                 value={`${detection.confirmed_by_count ?? 1} validation pass(es)`}
-                mono
               />
-              <DataRow icon={Car} label="Sensing Bus Fleet ID" value={detection.bus_id} mono />
-              <DataRow icon={Layers} label="GIS Segment ID" value={detection.segment_id} mono />
-              <DataRow icon={Clock} label="Observation Timestamp" value={formatTimestamp(detection.timestamp)} mono />
+              <DataRow icon={Car} label="Sensing Bus Fleet ID" value={detection.bus_id} />
+              <DataRow icon={Layers} label="GIS Segment ID" value={detection.segment_id} />
+              <DataRow icon={Clock} label="Observation Timestamp" value={formatTimestamp(detection.timestamp)} />
             </div>
           </div>
 
-          {/* Section 2: GIS Location */}
+          {/* Section 2: GIS Location & Focus Map */}
           <div>
-            <p className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">
-              Geographic Coordinates
-            </p>
-            <div className="bg-slate-900/60 rounded-xl border border-slate-800/60 px-4 divide-y divide-slate-800/40">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155]">
+                Geographic Coordinates
+              </p>
+              {isValidLoc && (
+                <button
+                  onClick={handleFocusMap}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#1e293b] text-[#FFFFF0] hover:bg-[#334155] text-[10px] font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  <Compass className="w-3 h-3 text-[#FFFFF0]" />
+                  <span>Focus on Map</span>
+                </button>
+              )}
+            </div>
+            <div className="bg-[#334155]/5 rounded-2xl border border-[#334155]/15 px-4 divide-y divide-[#334155]/10">
               {isValidLoc ? (
                 <>
                   <DataRow
                     icon={MapPin}
                     label="WGS84 Coordinates"
                     value={`${lat.toFixed(6)}, ${lng.toFixed(6)}`}
-                    mono
                   />
                   {loc.speed !== undefined && loc.speed !== null && (
-                    <DataRow icon={Gauge} label="Bus Speed at Observation" value={`${loc.speed} km/h`} mono />
+                    <DataRow icon={Gauge} label="Bus Speed at Observation" value={`${loc.speed} km/h`} />
                   )}
                   {loc.heading !== undefined && loc.heading !== null && (
-                    <DataRow label="Heading" value={`${loc.heading}°`} mono />
+                    <DataRow label="Compass Heading" value={`${loc.heading}°`} />
                   )}
                   {loc.accuracy !== undefined && loc.accuracy !== null && (
-                    <DataRow label="GPS Accuracy" value={`±${loc.accuracy} m`} mono />
+                    <DataRow label="GPS Accuracy Radius" value={`±${loc.accuracy} m`} />
                   )}
                 </>
               ) : (
-                <div className="py-3 text-xs text-slate-500 font-mono flex items-center gap-2">
+                <div className="py-3 text-xs text-[#334155] flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   Location data unavailable
                 </div>
@@ -189,17 +189,58 @@ export default function LifecycleDetail({ detection, onClose }) {
             </div>
           </div>
 
-          {/* Section 3: Metadata Attributes */}
+          {/* Section 3: Sensor Evidence Preview */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155] mb-2 flex items-center gap-1.5">
+              <Image className="w-3.5 h-3.5 text-[#1e293b]" />
+              Sensor Evidence Frame
+            </p>
+            {detection.thumbnail_url ? (
+              <div className="bg-[#334155]/5 rounded-2xl border border-[#334155]/15 p-3 space-y-2">
+                <div className="relative aspect-video bg-[#1e293b] rounded-xl overflow-hidden border border-[#334155]/20 flex items-center justify-center">
+                  <img
+                    src={detection.thumbnail_url}
+                    alt={`Evidence thumbnail for detection ${detection.id}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="hidden flex-col items-center justify-center p-4 text-center text-[#FFFFF0] text-xs space-y-1">
+                    <Image className="w-6 h-6 opacity-40" />
+                    <span>Failed to load thumbnail resource</span>
+                  </div>
+                </div>
+                <a
+                  href={detection.thumbnail_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#FFFFF0] hover:bg-[#1e293b] hover:text-[#FFFFF0] border border-[#334155]/20 text-[11px] font-bold text-[#1e293b] transition-all"
+                >
+                  <span className="truncate">{detection.thumbnail_url}</span>
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0 ml-2" />
+                </a>
+              </div>
+            ) : (
+              <div className="bg-[#334155]/5 rounded-2xl border border-dashed border-[#334155]/20 p-4 flex items-center justify-center text-[#334155] text-xs gap-2">
+                <Image className="w-4 h-4 opacity-40" />
+                <span>No detection evidence thumbnail available</span>
+              </div>
+            )}
+          </div>
+
+          {/* Section 4: Metadata Attributes */}
           {detection.metadata && Object.keys(detection.metadata).length > 0 && (
             <div>
-              <p className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155] mb-2">
                 Metadata & Bounding Details
               </p>
-              <div className="bg-slate-900/60 rounded-xl border border-slate-800/60 px-4 py-2 font-mono text-xs text-slate-300 space-y-1.5">
+              <div className="bg-[#334155]/5 rounded-2xl border border-[#334155]/15 px-4 py-2 text-xs text-[#1e293b] space-y-1.5">
                 {Object.entries(detection.metadata).map(([key, val]) => (
-                  <div key={key} className="flex items-center justify-between py-1 border-b border-slate-800/30 last:border-0">
-                    <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}:</span>
-                    <span className="text-cyan-300">
+                  <div key={key} className="flex items-center justify-between py-1 border-b border-[#334155]/10 last:border-0">
+                    <span className="text-[#334155] capitalize">{key.replace(/_/g, ' ')}:</span>
+                    <span className="font-bold text-[#1e293b]">
                       {Array.isArray(val) ? `[${val.join(', ')}]` : String(val)}
                     </span>
                   </div>
@@ -208,56 +249,60 @@ export default function LifecycleDetail({ detection, onClose }) {
             </div>
           )}
 
-          {/* Section 4: Workflow & Extensible Future Mutation Actions */}
+          {/* Section 5: Related Incident Context */}
           <div>
-            <p className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155] mb-2 flex items-center gap-1.5">
+              <AlertOctagon className="w-3.5 h-3.5 text-[#1e293b]" />
+              Related Incident Context
+            </p>
+            <div className="bg-[#334155]/5 rounded-2xl border border-[#334155]/15 p-3 text-xs text-[#334155]">
+              No authoritative detection-to-incident relationship available in current backend schema (Independent ANPR and road perception streams).
+            </div>
+          </div>
+
+          {/* Section 6: Workflow & Extensible Read-Only Lifecycle State */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#334155] mb-2 flex items-center justify-between">
               <span>Lifecycle Workflow State</span>
-              <span className="text-[9px] text-cyan-400 font-normal">Extensible v1.0</span>
+              <span className="text-[9px] text-[#334155] font-bold">Read-Only Telemetry v1.0</span>
             </p>
 
-            <div className="bg-slate-900/90 rounded-xl border border-slate-800 p-4 space-y-4">
-              {/* Step indicator */}
-              <div className="flex items-center justify-between text-[10px] font-mono">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="liquid-glass rounded-2xl border border-[#334155]/20 p-4 space-y-4">
+              <div className="flex items-center justify-between text-[10px] font-bold">
+                <div className="flex items-center gap-1.5 text-[#1e293b]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                   <span>1. Detected</span>
                 </div>
-                <span className="text-slate-600">→</span>
-                <div className={`flex items-center gap-1.5 ${
-                  detection.status === 'confirmed' || detection.status === 'in_review'
-                    ? 'text-emerald-400 font-bold'
-                    : 'text-slate-500'
-                }`}>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                <span className="text-[#334155]">→</span>
+                <div className="flex items-center gap-1.5 text-[#1e293b]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                   <span>2. Verified</span>
                 </div>
-                <span className="text-slate-600">→</span>
-                <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="text-[#334155]">→</span>
+                <div className="flex items-center gap-1.5 text-[#334155]">
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>3. Assigned</span>
                 </div>
-                <span className="text-slate-600">→</span>
-                <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="text-[#334155]">→</span>
+                <div className="flex items-center gap-1.5 text-[#334155]">
                   <Wrench className="w-3.5 h-3.5" />
                   <span>4. Repaired</span>
                 </div>
               </div>
 
-              {/* Future Action Controls (Disabled / Read-Only Notice) */}
-              <div className="pt-3 border-t border-slate-800/80 space-y-2.5">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-                  <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="font-semibold text-slate-300">Lifecycle Actions (Read-Only Mode)</span>
+              <div className="pt-3 border-t border-[#334155]/15 space-y-2.5">
+                <div className="flex items-center gap-1.5 text-xs text-[#334155]">
+                  <Info className="w-3.5 h-3.5 text-[#1e293b] shrink-0" />
+                  <span className="font-bold text-[#1e293b]">Lifecycle Actions (Read-Only Mode)</span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-mono leading-relaxed">
+                <p className="text-[11px] text-[#334155] leading-relaxed">
                   Backend mutation API endpoints (`PATCH /api/detections/:id`) for technician assignment, repair logging, and status transitions are pending backend deployment.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                   <button
                     disabled
-                    title="Lifecycle actions pending backend PATCH/PUT endpoint availability"
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-950 text-slate-600 border border-slate-800 text-[10px] font-mono cursor-not-allowed opacity-70"
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#334155]/10 text-[#334155]/60 border border-[#334155]/15 text-[10px] font-bold cursor-not-allowed opacity-70"
                   >
                     <UserCheck className="w-3 h-3" />
                     <span>Assign Tech</span>
@@ -266,8 +311,7 @@ export default function LifecycleDetail({ detection, onClose }) {
 
                   <button
                     disabled
-                    title="Lifecycle actions pending backend PATCH/PUT endpoint availability"
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-950 text-slate-600 border border-slate-800 text-[10px] font-mono cursor-not-allowed opacity-70"
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#334155]/10 text-[#334155]/60 border border-[#334155]/15 text-[10px] font-bold cursor-not-allowed opacity-70"
                   >
                     <Wrench className="w-3 h-3" />
                     <span>Mark Repaired</span>
@@ -276,8 +320,7 @@ export default function LifecycleDetail({ detection, onClose }) {
 
                   <button
                     disabled
-                    title="Lifecycle actions pending backend PATCH/PUT endpoint availability"
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-950 text-slate-600 border border-slate-800 text-[10px] font-mono cursor-not-allowed opacity-70"
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#334155]/10 text-[#334155]/60 border border-[#334155]/15 text-[10px] font-bold cursor-not-allowed opacity-70"
                   >
                     <ShieldCheck className="w-3 h-3" />
                     <span>Re-verify</span>

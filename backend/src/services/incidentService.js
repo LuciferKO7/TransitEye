@@ -52,6 +52,10 @@ class IncidentService {
   async getIncidentById(id) {
     return await this.repository.findById(id);
   }
+
+  async deleteIncident(id) {
+    return await this.repository.deleteById(id);
+  }
 }
 
 module.exports = new IncidentService();

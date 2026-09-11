@@ -60,6 +60,10 @@ class VehicleDensityService {
   async getVehicleDensityById(id) {
     return await this.repository.findById(id);
   }
+
+  async deleteVehicleDensity(id) {
+    return await this.repository.deleteById(id);
+  }
 }
 
 module.exports = new VehicleDensityService();

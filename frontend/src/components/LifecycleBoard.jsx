@@ -20,6 +20,9 @@ import {
 
 /**
  * Stage definitions mapping backend statuses to conceptual 5-stage lifecycle.
+ * Arranged into a clean 3x2 grid:
+ * Row 1: Detected, Verified, Assigned
+ * Row 2: Repaired, Reverified, Resolved
  */
 const STAGE_DEFINITIONS = [
   {
@@ -70,7 +73,7 @@ const STAGE_DEFINITIONS = [
   },
   {
     id: 'resolved',
-    title: 'Backend Resolved',
+    title: '6. Resolved',
     subtitle: 'Observations marked resolved in backend DB',
     icon: CheckCheck,
     isBackendSupported: true,
@@ -78,18 +81,22 @@ const STAGE_DEFINITIONS = [
   },
 ];
 
-/**
- * LifecycleBoard — Extensible 5-Stage Repair Lifecycle Visualization Component.
- *
- * Props:
- *   detections — { loading, data, error } state object from App.jsx
- */
-export default function LifecycleBoard({ detections }) {
+export default function LifecycleBoard({
+  detections,
+  selectedDetection: propSelectedDetection,
+  onSelectDetection,
+  onFocusMap,
+}) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedDetection, setSelectedDetection] = useState(null);
+  const [expandedStageId, setExpandedStageId] = useState('detected');
+  const [localSelectedDetection, setLocalSelectedDetection] = useState(null);
+
+  const selectedDetection =
+    propSelectedDetection !== undefined ? propSelectedDetection : localSelectedDetection;
+  const handleSelectDetection = onSelectDetection || setLocalSelectedDetection;
 
   const rawRecords = detections?.data?.data ?? [];
 
@@ -142,7 +149,6 @@ export default function LifecycleBoard({ detections }) {
       } else if (status === 'resolved') {
         map.resolved.push(d);
       } else {
-        // Fallback for unexpected or rejected
         map.detected.push(d);
       }
     });
@@ -164,26 +170,26 @@ export default function LifecycleBoard({ detections }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* ── Top Header Toolbar ── */}
-      <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="liquid-glass rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm border border-[#334155]/20">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="p-2 rounded-xl bg-cyan-950 border border-cyan-800/60 text-cyan-400">
+            <div className="p-2 rounded-xl bg-[#1e293b] text-[#FFFFF0]">
               <GitCommit className="w-5 h-5" />
             </div>
-            <h2 className="text-lg font-bold font-mono uppercase tracking-wider text-white">
-              Municipal Repair & Defect Lifecycle
+            <h2 className="text-lg font-bold font-mono uppercase tracking-wider text-[#1e293b]">
+              Municipal Defect Repair Lifecycle
             </h2>
           </div>
-          <p className="text-xs text-slate-400 font-mono">
-            Conceptual 5-Stage Workflow: Detected → Verified → Assigned → Repaired → Reverified
+          <p className="text-xs text-[#334155] font-mono">
+            Structured 3×2 Workflow: Detected, Verified, Assigned | Repaired, Reverified, Resolved
           </p>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span className="px-3 py-1.5 rounded-xl bg-[#334155]/10 border border-[#334155]/20 text-[#334155] flex items-center gap-2 font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>Read-Only Telemetry Stream</span>
           </span>
         </div>
@@ -193,22 +199,22 @@ export default function LifecycleBoard({ detections }) {
       <LifecycleSummary records={rawRecords} />
 
       {/* ── Filter & Search Controls ── */}
-      <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 space-y-3">
+      <div className="liquid-glass rounded-2xl p-4 space-y-3 border border-[#334155]/20">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by ID, subtype, bus ID, segment..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+              className="w-full bg-[#FFFFF0] border border-[#334155]/20 rounded-xl pl-9 pr-3 py-2 text-xs text-[#1e293b] placeholder-slate-400 focus:outline-none focus:border-[#1e293b] font-mono"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#1e293b]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -219,7 +225,7 @@ export default function LifecycleBoard({ detections }) {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-cyan-500"
+            className="bg-[#FFFFF0] border border-[#334155]/20 rounded-xl px-3 py-2 text-xs text-[#1e293b] font-mono focus:outline-none focus:border-[#1e293b]"
           >
             <option value="all">All Domain Types</option>
             <option value="road_defect">Road Defects</option>
@@ -231,7 +237,7 @@ export default function LifecycleBoard({ detections }) {
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-cyan-500"
+            className="bg-[#FFFFF0] border border-[#334155]/20 rounded-xl px-3 py-2 text-xs text-[#1e293b] font-mono focus:outline-none focus:border-[#1e293b]"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -244,7 +250,7 @@ export default function LifecycleBoard({ detections }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-cyan-500"
+            className="bg-[#FFFFF0] border border-[#334155]/20 rounded-xl px-3 py-2 text-xs text-[#1e293b] font-mono focus:outline-none focus:border-[#1e293b]"
           >
             <option value="all">All Backend Statuses</option>
             <option value="pending">Pending</option>
@@ -258,7 +264,7 @@ export default function LifecycleBoard({ detections }) {
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-mono text-cyan-400 flex items-center justify-center gap-1.5 transition-colors"
+              className="px-3 py-2 rounded-xl bg-[#334155]/10 hover:bg-[#334155]/20 text-xs font-mono text-[#1e293b] flex items-center justify-center gap-1.5 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -267,27 +273,31 @@ export default function LifecycleBoard({ detections }) {
         </div>
       </div>
 
-      {/* ── Main Lifecycle Board Columns ── */}
+      {/* ── 3×2 Lifecycle Stage Cards Layout ── */}
       {detections?.loading ? (
-        <div className="flex flex-col items-center justify-center py-24 text-slate-500 space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
-          <p className="text-sm font-mono">Loading telemetry lifecycle records…</p>
+        <div className="flex flex-col items-center justify-center py-24 text-[#334155] space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-[#1e293b]" />
+          <p className="text-sm">Loading telemetry lifecycle records…</p>
         </div>
       ) : detections?.error ? (
-        <div className="flex flex-col items-center justify-center py-20 text-rose-400 space-y-2 bg-slate-950/70 border border-rose-900/50 rounded-xl">
+        <div className="flex flex-col items-center justify-center py-20 text-[#1e293b] space-y-2 bg-[#FFFFF0] border border-[#334155]/20 rounded-2xl">
           <AlertCircle className="w-8 h-8 opacity-70" />
-          <p className="text-sm font-mono font-bold">Failed to load detection records</p>
-          <p className="text-xs text-slate-500 font-mono">{detections.error}</p>
+          <p className="text-sm font-bold">Failed to load detection records</p>
+          <p className="text-xs text-[#334155]">{detections.error}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-start overflow-x-auto pb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
           {STAGE_DEFINITIONS.map((stage) => (
             <LifecycleStage
               key={stage.id}
               stage={stage}
               items={stageItemsMap[stage.id] ?? []}
-              onSelect={setSelectedDetection}
+              onSelect={handleSelectDetection}
               selectedId={selectedDetection?.id}
+              isExpanded={expandedStageId === stage.id}
+              onToggleExpand={() =>
+                setExpandedStageId(expandedStageId === stage.id ? null : stage.id)
+              }
             />
           ))}
         </div>
@@ -296,7 +306,8 @@ export default function LifecycleBoard({ detections }) {
       {/* ── Slide-in Lifecycle Inspection Drawer ── */}
       <LifecycleDetail
         detection={selectedDetection}
-        onClose={() => setSelectedDetection(null)}
+        onClose={() => handleSelectDetection(null)}
+        onFocusMap={onFocusMap}
       />
     </div>
   );

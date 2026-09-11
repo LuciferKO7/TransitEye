@@ -29,3 +29,22 @@ exports.getDetections = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteDetection = async (req, res, next) => {
+  try {
+    const deleted = await detectionService.deleteDetection(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "Detection record not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Detection record deleted",
+      data: deleted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

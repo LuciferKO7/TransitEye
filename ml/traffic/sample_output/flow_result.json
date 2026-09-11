@@ -83,7 +83,7 @@
         "assigned": "down",
         "expected_from_dx_dy": "down",
         "dx": 19.89,
-        "dy": 78.45,
+        "dy": 78.44,
         "result": "PASS"
       },
       {
@@ -98,7 +98,7 @@
         "track_id": 3,
         "assigned": "down",
         "expected_from_dx_dy": "down",
-        "dx": -33.58,
+        "dx": -33.59,
         "dy": 71.58,
         "result": "PASS"
       },
@@ -107,7 +107,7 @@
         "assigned": "down",
         "expected_from_dx_dy": "down",
         "dx": 55.16,
-        "dy": 108.74,
+        "dy": 108.73,
         "result": "PASS"
       },
       {
@@ -121,14 +121,14 @@
     ]
   },
   "performance": {
-    "flow_computation_sec": 0.0027,
+    "flow_computation_sec": 0.0019,
     "note": "Flow computation runs on Stage 3 frame_log -- no re-inference. Total pipeline time = Stage 3 inference time + this flow computation time."
   },
   "per_track_flow": {
     "1": {
       "direction": "down",
       "dx": 19.89,
-      "dy": 78.45,
+      "dy": 78.44,
       "displacement_px": 80.93,
       "obs_count": 150,
       "last_class": "car",
@@ -139,7 +139,7 @@
       "direction": "right",
       "dx": 82.56,
       "dy": -20.14,
-      "displacement_px": 84.99,
+      "displacement_px": 84.98,
       "obs_count": 134,
       "last_class": "car",
       "first_frame": 1,
@@ -147,9 +147,9 @@
     },
     "3": {
       "direction": "down",
-      "dx": -33.58,
+      "dx": -33.59,
       "dy": 71.58,
-      "displacement_px": 79.07,
+      "displacement_px": 79.06,
       "obs_count": 78,
       "last_class": "car",
       "first_frame": 1,
@@ -158,7 +158,7 @@
     "4": {
       "direction": "down",
       "dx": 55.16,
-      "dy": 108.74,
+      "dy": 108.73,
       "displacement_px": 121.93,
       "obs_count": 128,
       "last_class": "car",
@@ -177,9 +177,9 @@
     },
     "6": {
       "direction": "left",
-      "dx": -8.78,
+      "dx": -8.77,
       "dy": 8.12,
-      "displacement_px": 11.96,
+      "displacement_px": 11.95,
       "obs_count": 10,
       "last_class": "car",
       "first_frame": 1,
@@ -187,7 +187,7 @@
     },
     "7": {
       "direction": "down",
-      "dx": -57.31,
+      "dx": -57.3,
       "dy": 124.31,
       "displacement_px": 136.89,
       "obs_count": 150,
@@ -197,8 +197,8 @@
     },
     "8": {
       "direction": "down",
-      "dx": -27.13,
-      "dy": 73.89,
+      "dx": -27.12,
+      "dy": 73.88,
       "displacement_px": 78.71,
       "obs_count": 150,
       "last_class": "car",
@@ -207,7 +207,7 @@
     },
     "9": {
       "direction": "down",
-      "dx": 18.56,
+      "dx": 18.55,
       "dy": 56.4,
       "displacement_px": 59.37,
       "obs_count": 150,
@@ -228,7 +228,7 @@
     "11": {
       "direction": "right",
       "dx": 8.54,
-      "dy": 7.79,
+      "dy": 7.8,
       "displacement_px": 11.56,
       "obs_count": 49,
       "last_class": "truck",
@@ -258,8 +258,8 @@
     "14": {
       "direction": "unknown",
       "dx": 3.28,
-      "dy": 8.09,
-      "displacement_px": 8.73,
+      "dy": 8.1,
+      "displacement_px": 8.74,
       "obs_count": 15,
       "last_class": "car",
       "first_frame": 1,
@@ -278,8 +278,8 @@
     "16": {
       "direction": "down",
       "dx": -16.64,
-      "dy": 32.16,
-      "displacement_px": 36.21,
+      "dy": 32.17,
+      "displacement_px": 36.22,
       "obs_count": 137,
       "last_class": "car",
       "first_frame": 1,
@@ -289,7 +289,7 @@
       "direction": "unknown",
       "dx": 4.47,
       "dy": 0.41,
-      "displacement_px": 4.48,
+      "displacement_px": 4.49,
       "obs_count": 28,
       "last_class": "car",
       "first_frame": 1,
@@ -297,19 +297,19 @@
     },
     "18": {
       "direction": "unknown",
-      "dx": 6.81,
-      "dy": -5.38,
-      "displacement_px": 8.67,
-      "obs_count": 25,
+      "dx": 6.48,
+      "dy": -5.33,
+      "displacement_px": 8.39,
+      "obs_count": 24,
       "last_class": "car",
       "first_frame": 1,
-      "last_frame": 25
+      "last_frame": 24
     },
     "19": {
       "direction": "unknown",
-      "dx": 0.47,
+      "dx": 0.46,
       "dy": -2.41,
-      "displacement_px": 2.46,
+      "displacement_px": 2.45,
       "obs_count": 22,
       "last_class": "car",
       "first_frame": 1,
@@ -317,9 +317,9 @@
     },
     "20": {
       "direction": "unknown",
-      "dx": -1.95,
+      "dx": -1.97,
       "dy": 1.28,
-      "displacement_px": 2.33,
+      "displacement_px": 2.35,
       "obs_count": 6,
       "last_class": "car",
       "first_frame": 1,
@@ -327,9 +327,9 @@
     },
     "21": {
       "direction": "down",
-      "dx": 31.8,
-      "dy": 45.6,
-      "displacement_px": 55.59,
+      "dx": 31.83,
+      "dy": 45.59,
+      "displacement_px": 55.6,
       "obs_count": 149,
       "last_class": "car",
       "first_frame": 1,
@@ -339,7 +339,7 @@
       "direction": "down",
       "dx": 8.08,
       "dy": 11.57,
-      "displacement_px": 14.11,
+      "displacement_px": 14.12,
       "obs_count": 11,
       "last_class": "car",
       "first_frame": 1,
@@ -347,9 +347,9 @@
     },
     "23": {
       "direction": "unknown",
-      "dx": -1.31,
-      "dy": -2.36,
-      "displacement_px": 2.7,
+      "dx": -1.3,
+      "dy": -2.35,
+      "displacement_px": 2.69,
       "obs_count": 8,
       "last_class": "car",
       "first_frame": 1,
@@ -377,8 +377,8 @@
     },
     "42": {
       "direction": "down",
-      "dx": 7.94,
-      "dy": 13.72,
+      "dx": 7.95,
+      "dy": 13.71,
       "displacement_px": 15.85,
       "obs_count": 21,
       "last_class": "car",
@@ -388,7 +388,7 @@
     "55": {
       "direction": "unknown",
       "dx": 2.42,
-      "dy": -1.4,
+      "dy": -1.41,
       "displacement_px": 2.8,
       "obs_count": 7,
       "last_class": "truck",
@@ -398,8 +398,8 @@
     "56": {
       "direction": "down",
       "dx": 33.24,
-      "dy": 117.94,
-      "displacement_px": 122.53,
+      "dy": 117.92,
+      "displacement_px": 122.51,
       "obs_count": 137,
       "last_class": "car",
       "first_frame": 14,
@@ -417,9 +417,9 @@
     },
     "79": {
       "direction": "right",
-      "dx": 16.86,
+      "dx": 16.85,
       "dy": 13.66,
-      "displacement_px": 21.7,
+      "displacement_px": 21.69,
       "obs_count": 18,
       "last_class": "car",
       "first_frame": 28,
@@ -428,7 +428,7 @@
     "82": {
       "direction": "down",
       "dx": -13.95,
-      "dy": 29.77,
+      "dy": 29.78,
       "displacement_px": 32.88,
       "obs_count": 56,
       "last_class": "car",
@@ -439,7 +439,7 @@
       "direction": "unknown",
       "dx": 1.7,
       "dy": 2.65,
-      "displacement_px": 3.15,
+      "displacement_px": 3.14,
       "obs_count": 7,
       "last_class": "car",
       "first_frame": 32,
@@ -448,7 +448,7 @@
     "116": {
       "direction": "unknown",
       "dx": -3.79,
-      "dy": -3.09,
+      "dy": -3.08,
       "displacement_px": 4.89,
       "obs_count": 18,
       "last_class": "car",
@@ -457,7 +457,7 @@
     },
     "121": {
       "direction": "unknown",
-      "dx": 1.6,
+      "dx": 1.61,
       "dy": 2.12,
       "displacement_px": 2.66,
       "obs_count": 8,
@@ -467,9 +467,9 @@
     },
     "125": {
       "direction": "right",
-      "dx": 12.39,
+      "dx": 12.51,
       "dy": 10.48,
-      "displacement_px": 16.23,
+      "displacement_px": 16.32,
       "obs_count": 104,
       "last_class": "bus",
       "first_frame": 47,
@@ -478,7 +478,7 @@
     "147": {
       "direction": "unknown",
       "dx": 4.71,
-      "dy": 1.13,
+      "dy": 1.12,
       "displacement_px": 4.84,
       "obs_count": 22,
       "last_class": "car",
@@ -507,7 +507,7 @@
     },
     "157": {
       "direction": "unknown",
-      "dx": 6.0,
+      "dx": 5.99,
       "dy": -1.46,
       "displacement_px": 6.17,
       "obs_count": 12,
@@ -535,17 +535,17 @@
       "first_frame": 68,
       "last_frame": 70
     },
-    "193": {
+    "192": {
       "direction": "left",
       "dx": -10.83,
-      "dy": 9.68,
-      "displacement_px": 14.52,
+      "dy": 9.69,
+      "displacement_px": 14.53,
       "obs_count": 78,
       "last_class": "car",
       "first_frame": 73,
       "last_frame": 150
     },
-    "194": {
+    "193": {
       "direction": "down",
       "dx": -8.75,
       "dy": 22.07,
@@ -555,7 +555,7 @@
       "first_frame": 73,
       "last_frame": 121
     },
-    "196": {
+    "195": {
       "direction": "unknown",
       "dx": 0.94,
       "dy": 6.25,
@@ -565,17 +565,17 @@
       "first_frame": 74,
       "last_frame": 82
     },
-    "219": {
+    "218": {
       "direction": "unknown",
-      "dx": 0.38,
-      "dy": 6.65,
+      "dx": 0.37,
+      "dy": 6.64,
       "displacement_px": 6.66,
       "obs_count": 14,
       "last_class": "car",
       "first_frame": 80,
       "last_frame": 100
     },
-    "221": {
+    "220": {
       "direction": "unknown",
       "dx": 1.71,
       "dy": 8.45,
@@ -585,17 +585,17 @@
       "first_frame": 80,
       "last_frame": 103
     },
-    "233": {
+    "232": {
       "direction": "down",
       "dx": 4.29,
-      "dy": 22.51,
-      "displacement_px": 22.92,
+      "dy": 22.48,
+      "displacement_px": 22.88,
       "obs_count": 28,
       "last_class": "car",
       "first_frame": 84,
       "last_frame": 141
     },
-    "235": {
+    "234": {
       "direction": "unknown",
       "dx": -0.64,
       "dy": 0.01,
@@ -605,7 +605,7 @@
       "first_frame": 85,
       "last_frame": 91
     },
-    "248": {
+    "247": {
       "direction": "unknown",
       "dx": 0.94,
       "dy": -1.53,
@@ -615,7 +615,7 @@
       "first_frame": 89,
       "last_frame": 101
     },
-    "253": {
+    "252": {
       "direction": "unknown",
       "dx": 0.23,
       "dy": 0.28,
@@ -625,17 +625,17 @@
       "first_frame": 91,
       "last_frame": 95
     },
-    "254": {
+    "253": {
       "direction": "unknown",
-      "dx": -0.5,
+      "dx": -0.52,
       "dy": -0.74,
-      "displacement_px": 0.9,
+      "displacement_px": 0.91,
       "obs_count": 5,
       "last_class": "car",
       "first_frame": 92,
       "last_frame": 96
     },
-    "257": {
+    "256": {
       "direction": "right",
       "dx": 18.04,
       "dy": -4.31,
@@ -645,9 +645,9 @@
       "first_frame": 94,
       "last_frame": 144
     },
-    "271": {
+    "270": {
       "direction": "unknown",
-      "dx": 1.82,
+      "dx": 1.81,
       "dy": 1.38,
       "displacement_px": 2.28,
       "obs_count": 6,
@@ -655,7 +655,7 @@
       "first_frame": 100,
       "last_frame": 105
     },
-    "278": {
+    "277": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -665,17 +665,17 @@
       "first_frame": 103,
       "last_frame": 105
     },
-    "286": {
+    "285": {
       "direction": "unknown",
-      "dx": -5.32,
+      "dx": -5.33,
       "dy": -2.04,
-      "displacement_px": 5.7,
+      "displacement_px": 5.71,
       "obs_count": 13,
       "last_class": "car",
       "first_frame": 106,
       "last_frame": 122
     },
-    "292": {
+    "291": {
       "direction": "down",
       "dx": 8.13,
       "dy": 10.71,
@@ -685,7 +685,7 @@
       "first_frame": 107,
       "last_frame": 150
     },
-    "296": {
+    "295": {
       "direction": "right",
       "dx": 17.16,
       "dy": -16.43,
@@ -695,7 +695,7 @@
       "first_frame": 108,
       "last_frame": 150
     },
-    "313": {
+    "312": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -705,7 +705,7 @@
       "first_frame": 116,
       "last_frame": 117
     },
-    "314": {
+    "313": {
       "direction": "unknown",
       "dx": 8.87,
       "dy": 0.06,
@@ -715,7 +715,7 @@
       "first_frame": 116,
       "last_frame": 150
     },
-    "317": {
+    "316": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -725,17 +725,17 @@
       "first_frame": 116,
       "last_frame": 119
     },
-    "318": {
+    "317": {
       "direction": "unknown",
-      "dx": -0.03,
-      "dy": 7.2,
-      "displacement_px": 7.2,
+      "dx": -0.14,
+      "dy": 7.19,
+      "displacement_px": 7.19,
       "obs_count": 34,
       "last_class": "truck",
       "first_frame": 117,
       "last_frame": 150
     },
-    "333": {
+    "332": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -745,39 +745,39 @@
       "first_frame": 122,
       "last_frame": 122
     },
-    "357": {
+    "356": {
       "direction": "unknown",
-      "dx": 5.8,
-      "dy": 6.28,
+      "dx": 5.79,
+      "dy": 6.29,
       "displacement_px": 8.55,
       "obs_count": 21,
       "last_class": "car",
       "first_frame": 127,
       "last_frame": 150
     },
-    "377": {
+    "376": {
       "direction": "unknown",
-      "dx": -1.99,
+      "dx": -1.98,
       "dy": 0.3,
-      "displacement_px": 2.01,
+      "displacement_px": 2.0,
       "obs_count": 19,
       "last_class": "car",
       "first_frame": 132,
       "last_frame": 150
     },
-    "382": {
+    "381": {
       "direction": "down",
       "dx": 7.08,
-      "dy": 8.38,
-      "displacement_px": 10.97,
+      "dy": 8.37,
+      "displacement_px": 10.96,
       "obs_count": 6,
       "last_class": "car",
       "first_frame": 133,
       "last_frame": 146
     },
-    "384": {
+    "383": {
       "direction": "unknown",
-      "dx": 5.07,
+      "dx": 5.06,
       "dy": 0.02,
       "displacement_px": 5.07,
       "obs_count": 17,
@@ -785,7 +785,7 @@
       "first_frame": 134,
       "last_frame": 150
     },
-    "395": {
+    "394": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -795,7 +795,7 @@
       "first_frame": 138,
       "last_frame": 142
     },
-    "397": {
+    "396": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -805,7 +805,7 @@
       "first_frame": 139,
       "last_frame": 142
     },
-    "410": {
+    "409": {
       "direction": "unknown",
       "dx": -0.19,
       "dy": 0.6,
@@ -815,27 +815,27 @@
       "first_frame": 143,
       "last_frame": 150
     },
-    "411": {
+    "410": {
       "direction": "unknown",
-      "dx": -0.06,
+      "dx": -0.07,
       "dy": 1.08,
-      "displacement_px": 1.09,
+      "displacement_px": 1.08,
       "obs_count": 8,
       "last_class": "car",
       "first_frame": 143,
       "last_frame": 150
     },
-    "412": {
+    "411": {
       "direction": "unknown",
       "dx": 0.69,
-      "dy": 3.48,
-      "displacement_px": 3.55,
+      "dy": 3.49,
+      "displacement_px": 3.56,
       "obs_count": 5,
       "last_class": "car",
       "first_frame": 143,
       "last_frame": 150
     },
-    "420": {
+    "419": {
       "direction": "unknown",
       "dx": 0.0,
       "dy": 0.0,
@@ -1075,11 +1075,11 @@
     },
     {
       "frame_index": 25,
-      "active_vehicle_count": 21,
+      "active_vehicle_count": 20,
       "active_by_direction": {
         "right": 5,
         "down": 12,
-        "unknown": 4
+        "unknown": 3
       }
     },
     {

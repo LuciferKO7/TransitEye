@@ -29,7 +29,8 @@ def track_and_count_vehicles(
     conf_threshold: float = 0.25,
     max_frames: int = 150,
     output_video_path: str = None,
-    output_json_path: str = None
+    output_json_path: str = None,
+    device=None
 ) -> dict:
     """
     Performs Stage 2 ByteTrack tracking & Stage 3 vehicle counting and class breakdown on an input video.
@@ -67,19 +68,25 @@ def track_and_count_vehicles(
         import glob as _glob
         _candidates = _glob.glob("ml/traffic/sample_input/*.jpg")
         _sample_img = _candidates[0] if _candidates else video_path
-    model.predict(source=_sample_img, conf=conf_threshold, verbose=False)
+    warmup_kwargs = {"source": _sample_img, "conf": conf_threshold, "verbose": False}
+    if device is not None:
+        warmup_kwargs["device"] = device
+    model.predict(**warmup_kwargs)
     print("[INFO] Warm-up complete.")
 
     print(f"[INFO] Starting ByteTrack tracking & unique vehicle counting baseline (max frames={max_frames})...")
     start_time = time.perf_counter()
 
-    results = model.track(
-        source=video_path,
-        tracker="bytetrack.yaml",
-        conf=conf_threshold,
-        stream=True,
-        verbose=False
-    )
+    track_kwargs = {
+        "source": video_path,
+        "tracker": "bytetrack.yaml",
+        "conf": conf_threshold,
+        "stream": True,
+        "verbose": False
+    }
+    if device is not None:
+        track_kwargs["device"] = device
+    results = model.track(**track_kwargs)
 
     frame_index = 0
     frames_with_detections = 0
@@ -217,8 +224,10 @@ def track_and_count_vehicles(
         "performance": {
             "elapsed_time_sec": round(elapsed_time, 2),
             "observed_fps": round(observed_fps, 2),
-            "hardware": "Intel(R) Core(TM) i7-14650HX CPU",
-            "runtime": "PyTorch 2.14.0+cpu"
+            "device": str(device) if device is not None else "auto",
+            "runtime": f"PyTorch {torch.__version__}" + (
+                f"+CUDA:{torch.version.cuda}" if (device is not None and str(device) != "cpu" and torch.cuda.is_available()) else "+cpu"
+            )
         },
         "frame_log": frame_records
     }
@@ -239,7 +248,13 @@ def main():
     parser.add_argument("--max_frames", type=int, default=150, help="Maximum frames to process")
     parser.add_argument("--output_video", type=str, default="ml/traffic/sample_output/counting_result.mp4", help="Path to output video")
     parser.add_argument("--output_json", type=str, default="ml/traffic/sample_output/counting_result.json", help="Path to output JSON log")
+    parser.add_argument("--device", type=str, default=None, help="Inference device (e.g. 0 for GPU, cpu). Default: Ultralytics auto-select.")
     args = parser.parse_args()
+
+    # Resolve device: int for GPU index, str for 'cpu', None for auto
+    device = args.device
+    if device is not None and device.isdigit():
+        device = int(device)
 
     model = load_model(args.weights)
     summary = track_and_count_vehicles(
@@ -248,7 +263,8 @@ def main():
         conf_threshold=args.conf,
         max_frames=args.max_frames,
         output_video_path=args.output_video,
-        output_json_path=args.output_json
+        output_json_path=args.output_json,
+        device=device
     )
 
     # Clean display summary without full frame log dump

@@ -16,17 +16,23 @@
 
 All metrics below were measured on the host environment: Intel(R) Core(TM) i7-14650HX CPU, PyTorch 2.14.0+cpu, Python 3.14.6.
 
-### 2.1 Inference & Tracking Throughput
+### 2.1 Inference & Tracking Throughput (CPU Baseline)
 
 | Component / Pipeline Stage | Measured Value | Unit | Condition / Details |
 | :--- | :--- | :--- | :--- |
-| **Single-Frame Inference Latency** | **33.22 ms** | Avg per frame | YOLOv8n single image predict (Min: 31.46 ms, Max: 34.98 ms, ~30.1 FPS CPU batch=1) |
-| **Pure Track Inference Latency** | **3.62 s** | Total for 150 frames | Pure YOLOv8n + ByteTrack track execution (~41.43 FPS reference) |
-| **End-to-End Tracking & Counting Pipeline** | **6.84 s** | Total for 150 frames | Includes video read, ByteTrack tracking, visualization, and JSON output (**21.94 FPS**) |
+| **Single-Frame Inference Latency (CPU)** | **43.09 ms** | Avg per frame | YOLOv8n single image predict (Intel Core i7-14650HX CPU, batch=1) |
+| **Pure Track Inference Throughput (CPU)** | **4.95 s / 30.27 FPS** | Total for 150 frames | Pure YOLOv8n + ByteTrack 150-frame tracking execution (72 unique vehicles) |
 | **Stage 4 Density Computation Latency** | **1.40 ms** | Total for 150 frames | Pure relative density calculation on Stage 3 `frame_log` (0.0014 s) |
 | **Stage 5 Flow Calculation Latency** | **2.70 ms** | Total for 150 frames | Center-point displacement calculation on Stage 3 `frame_log` (0.0027 s) |
 | **Stage 6 Adapter Normalization Latency** | **0.40 ms** | Per payload | `TrafficAdapter.format_vehicle_density()` execution |
 | **Stage 6 Edge-to-Backend Handoff Latency** | **32.07 ms** | Per HTTP post | Full payload ingestion to Node/Express `/api/vehicle-density` |
+
+### 2.2 GPU-Accelerated Performance (NVIDIA RTX 3050 Laptop GPU, CUDA 12.6, PyTorch 2.14.0+cu126)
+
+| Component / Pipeline Stage | Measured Value | Unit | Condition / Details |
+| :--- | :--- | :--- | :--- |
+| **Single-Image Inference Latency (GPU)** | **15.50 ms** | Avg per frame | YOLOv8n predict with `--device 0` (NVIDIA RTX 3050 Laptop GPU, 4GB VRAM) |
+| **150-Frame Tracking Throughput (GPU)** | **4.33 s / 34.63 FPS** | Total for 150 frames | YOLOv8n + ByteTrack 150-frame tracking with `device=0` (72 unique vehicles) |
 
 ---
 

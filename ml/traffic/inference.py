@@ -27,7 +27,8 @@ def detect_vehicles(
     model: YOLO,
     image_path: str,
     conf_threshold: float = 0.25,
-    output_path: str = None
+    output_path: str = None,
+    device=None
 ) -> dict:
     """
     Performs vehicle detection on an input image, filtering strictly for approved traffic classes:
@@ -44,7 +45,10 @@ def detect_vehicles(
 
     start_time = time.perf_counter()
     # Run YOLO inference
-    results = model.predict(source=image_path, conf=conf_threshold, verbose=False)
+    predict_kwargs = {"source": image_path, "conf": conf_threshold, "verbose": False}
+    if device is not None:
+        predict_kwargs["device"] = device
+    results = model.predict(**predict_kwargs)
     inference_time_ms = (time.perf_counter() - start_time) * 1000.0
 
     detections = []
@@ -101,21 +105,26 @@ def benchmark_latency(
     image_path: str,
     warmup_runs: int = 3,
     measured_runs: int = 10,
-    conf_threshold: float = 0.25
+    conf_threshold: float = 0.25,
+    device=None
 ) -> dict:
     """
     Performs warm-up runs followed by repeated inference latency measurements to exclude
     first-run setup overhead.
     """
+    predict_kwargs = {"conf": conf_threshold, "verbose": False}
+    if device is not None:
+        predict_kwargs["device"] = device
+
     # 1. Warm-up runs
     for _ in range(warmup_runs):
-        _ = model.predict(source=image_path, conf=conf_threshold, verbose=False)
+        _ = model.predict(source=image_path, **predict_kwargs)
 
     # 2. Measured runs
     latencies = []
     for _ in range(measured_runs):
         t0 = time.perf_counter()
-        _ = model.predict(source=image_path, conf=conf_threshold, verbose=False)
+        _ = model.predict(source=image_path, **predict_kwargs)
         t1 = time.perf_counter()
         latencies.append((t1 - t0) * 1000.0)
 
@@ -139,13 +148,19 @@ def main():
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     parser.add_argument("--output", type=str, default="ml/traffic/sample_output/detection_result.jpg", help="Path to output image")
     parser.add_argument("--benchmark", action="store_true", help="Run latency benchmark with warm-up runs")
+    parser.add_argument("--device", type=str, default=None, help="Inference device (e.g. 0 for GPU, cpu). Default: Ultralytics auto-select.")
     args = parser.parse_args()
 
+    # Resolve device: int for GPU index, str for 'cpu', None for auto
+    device = args.device
+    if device is not None and device.isdigit():
+        device = int(device)
+
     model = load_model(args.weights)
-    result = detect_vehicles(model, args.input, conf_threshold=args.conf, output_path=args.output)
+    result = detect_vehicles(model, args.input, conf_threshold=args.conf, output_path=args.output, device=device)
 
     if args.benchmark:
-        bench_res = benchmark_latency(model, args.input, warmup_runs=3, measured_runs=10, conf_threshold=args.conf)
+        bench_res = benchmark_latency(model, args.input, warmup_runs=3, measured_runs=10, conf_threshold=args.conf, device=device)
         result["latency_benchmark"] = bench_res
 
     print("\n--- STAGE 1 DETECTION BASELINE RESULT ---")
